@@ -30,4 +30,15 @@ class Router {
     {
         $this->add("POST", $path, $callback);
     }
+
+    /**
+     * Registering a route for the PUT HTTP method.
+     * @param string $path The route path.
+     * @param callable $callback The callback function to call when the route is matched.
+     * @return void
+     */
+    public function put(string $path, callable $callback): void
+    {
+        $this->add("PUT", $path, $callback);
+    }
 }
