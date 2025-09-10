@@ -41,4 +41,15 @@ class Router {
     {
         $this->add("PUT", $path, $callback);
     }
+
+    /**
+     * Registering a route for the DELETE HTTP method.
+     * @param string $path The route path.
+     * @param callable $callback The callback function to call when the route is matched.
+     * @return void
+     */
+    public function delete(string $path, callable $callback): void
+    {
+        $this->add("DELETE", $path, $callback);
+    }
 }
