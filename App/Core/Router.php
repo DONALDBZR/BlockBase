@@ -52,4 +52,17 @@ class Router {
     {
         $this->add("DELETE", $path, $callback);
     }
+
+    /**
+     * Registering a route for a specific HTTP method and path.
+     * @param string $method The HTTP method.
+     * @param string $path The route path.
+     * @param callable $callback The callback function to call when the route is matched.
+     * @return void
+     */
+    private function add(string $method, string $path, callable $callback): void
+    {
+        $method = strtoupper($method);
+        $this->routes[$method][$path] = $callback;
+    }
 }
