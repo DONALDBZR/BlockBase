@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . "/../vendor/autoload.php";
 
-
 // Loading environment variables
 if (file_exists(__DIR__ . "/../.env")) {
     $environment = parse_ini_file(__DIR__ . "/../.env");
@@ -9,9 +8,8 @@ if (file_exists(__DIR__ . "/../.env")) {
         $_ENV[$key] = $value;
     }
 }
-require_once __DIR__ . "/../app/Core/Router.php";
 
-
+use App\Core\Router;
 $router = new Router();
 $router->get("/", function () {
     echo "Welcome to your PHP CMS 🚀";
