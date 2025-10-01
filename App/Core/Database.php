@@ -401,10 +401,18 @@ class Database_Handler {
         }
     }
 
-    private function get(string $query, array $parameters = [], bool $stream = false): iterable
+    /**
+     * Retrieving data from the database query.
+     * @param string $query The database query.
+     * @param array<string,mixed> $parameters The parameters to bind. Key is the parameter key, value is the parameter value.
+     * @param bool $stream If true, fetchStream will be used. Otherwise, fetchAll will be used.
+     * @return iterable The data retrieved from the database query.
+     */
+    public function get(string $query, array $parameters = [], bool $stream = false): iterable
     {
         try {
             $response = $this->fetch($query, $parameters, $stream);
+            $this->clearCursor();
             return $response;
         } catch (PDOException $error) {
             $context = [
