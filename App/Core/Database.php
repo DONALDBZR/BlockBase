@@ -211,6 +211,14 @@ class Database_Handler {
         $this->getLogger()->log("The parameter is bound.", Logger::INFO);
     }
 
+    /**
+     * Binding a parameter to the database query.
+     * @param string $key The key of the parameter.
+     * @param mixed $value The value of the parameter.
+     * @return void
+     * @throws PDOException If an error occurs while binding the parameter.
+     * @throws InvalidArgumentException If the value is not of a valid data type.
+     */
     private function bindParameter(string $key, mixed $value): void
     {
         try {
