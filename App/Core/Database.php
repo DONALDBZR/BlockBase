@@ -58,7 +58,7 @@ class Database_Handler {
         $this->logger = $logger;
     }
 
-    private function setCursor(PDOStatement $cursor): void
+    private function setCursor(?PDOStatement $cursor): void
     {
         $this->cursor = $cursor;
     }
@@ -375,11 +375,47 @@ class Database_Handler {
      * @return iterable The data retrieved from the database query.
      * @throws PDOException If an error occurs while retrieving the data.
      */
-    private function get(string $query, array $parameters, bool $stream = false): iterable
+    private function fetch(string $query, array $parameters, bool $stream = false): iterable
     {
         if ($stream) {
             return $this->fetchStream($query, $parameters);
         }
         return $this->fetchAll($query, $parameters);
+    }
+
+    /**
+     * Clearing the database query cursor.
+     * @return void
+     * @throws PDOException If an error occurs while clearing the cursor.
+     */
+    private function clearCursor(): void
+    {
+        if (is_null($this->getCursor())) {
+            return;
+        }
+        try {
+            $this->getCursor()->closeCursor();
+            $this->setCursor(null);
+        } catch (PDOException $error) {
+            throw new PDOException("The cursor cannot be cleared. - File: {$error->getFile()} - Line: {$error->getLine()} - Error: {$error->getMessage()}", 503);
+        }
+    }
+
+    private function get(string $query, array $parameters = [], bool $stream = false): iterable
+    {
+        try {
+            $response = $this->fetch($query, $parameters, $stream);
+            return $response;
+        } catch (PDOException $error) {
+            $context = [
+                "Query" => $query,
+                "Parameters" => print_r($parameters, true),
+                "File" => $error->getFile(),
+                "Line" => $error->getLine(),
+                "Error" => $error->getMessage()
+            ];
+            $this->getLogger()->log("The data cannot be retrieved from the cursor.", Logger::ERROR, $context);
+            return [];
+        }
     }
 }
