@@ -366,4 +366,20 @@ class Database_Handler {
             $this->rollbackTransaction($error);
         }
     }
+
+    /**
+     * Retrieving data from the database query.
+     * @param string $query The database query.
+     * @param array<string,mixed> $parameters The parameters to bind. Key is the parameter key, value is the parameter value.
+     * @param bool $stream If true, fetchStream will be used. Otherwise, fetchAll will be used.
+     * @return iterable The data retrieved from the database query.
+     * @throws PDOException If an error occurs while retrieving the data.
+     */
+    private function get(string $query, array $parameters, bool $stream = false): iterable
+    {
+        if ($stream) {
+            return $this->fetchStream($query, $parameters);
+        }
+        return $this->fetchAll($query, $parameters);
+    }
 }
