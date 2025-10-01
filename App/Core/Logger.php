@@ -1,6 +1,7 @@
 <?php
 namespace App\Core;
 
+use DateTime;
 use RuntimeException;
 
 class Logger {
@@ -27,11 +28,6 @@ class Logger {
         self::$file = $file;
     }
 
-    /**
-     * Writing a log message to a file.
-     * @param string $message The log message to be written.
-     * @throws RuntimeException If the file does not exist.
-     */
     public static function log(string $message): void
     {
         $file_handler = fopen(self::getFile(), "a");
@@ -41,5 +37,13 @@ class Logger {
         $data = "[{$severity}] [{$date}] [{$scope}] [{$client}] [{$process_id}] [{$thread_id}] {$message}\n";
         fwrite($file_handler, $data);
         fclose($file_handler);
+    }
+
+    private static function rotateLog(): void
+    {
+        $date = new DateTime();
+        $name = $date->format("Ymd");
+        rename(self::getFile(), $name);
+        touch(self::getFile());
     }
 }
