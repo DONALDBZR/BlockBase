@@ -453,4 +453,37 @@ class Database_Handler {
             return false;
         }
     }
+
+    /**
+     * Deleting data from the database by executing a query with the given parameters.
+     * @param string $query The database query.
+     * @param array<string,mixed> $parameters The parameters to bind. Key is the parameter key, value is the parameter value.
+     * @return bool True if the data was deleted successfully, false otherwise.
+     */
+    public function delete(string $query, array $parameters = []): bool
+    {
+        return $this->manipulateData($query, $parameters);
+    }
+
+    // /**
+    //  * Updating data in the database by executing a query with the given parameters.
+    //  * @param string $query The database query.
+    //  * @param array<string,mixed> $parameters The parameters to bind. Key is the parameter key, value is the parameter value.
+    //  * @return bool True if the data was updated successfully, false otherwise.
+    //  */
+    // public function put(string $query, array $parameters = []): bool
+    // {
+    //     return $this->manipulateData($query, $parameters);
+    // }
+
+    // /**
+    //  * Inserting data into the database by executing a query with the given parameters.
+    //  * @param string $query The database query.
+    //  * @param array<string,mixed> $parameters The parameters to bind. Key is the parameter key, value is the parameter value.
+    //  * @return bool True if the data was inserted successfully, false otherwise.
+    //  */
+    // public function post(string $query, array $parameters = []): bool
+    // {
+    //     return $this->manipulateData($query, $parameters);
+    // }
 }
