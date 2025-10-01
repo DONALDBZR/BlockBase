@@ -20,7 +20,20 @@ class Logger {
         self::ERROR
     ];
 
-    private function __construct() {}
+    /**
+     * Initializing the `Logger` instance.
+     * 
+     * This constructor functions as follows:
+     * 1. Sets the directory.
+     * 2. Sets the file.
+     * 3. Rotates the log file if it already exists.
+     */
+    private function __construct() {
+        self::setDirectory(__DIR__ . "/Storage/Logs/");
+        $date = date("Ymd");
+        self::setFile("{$date}.log");
+        self::rotateLog();
+    }
 
     /**
      * Initializing the Logger instance with the given file and directory.
