@@ -166,17 +166,28 @@ class Database_Handler {
         $this->getLogger()->log("The parameter is bound.", Logger::INFO);
     }
 
+    /**
+     * Binding a string parameter to the database query.
+     * @param string $key The key of the parameter.
+     * @param mixed $value The value of the parameter.
+     * @return void
+     */
+    private function bindString(string $key, mixed $value): void
+    {
+        if (!is_string($value)) {
+            return;
+        }
+        $this->getCursor()->bindValue(":{$key}", $value, PDO::PARAM_STR);
+        $this->getLogger()->log("The parameter is bound.", Logger::INFO);
+    }
+
     private function bindParameter(string $key, mixed $value): void
     {
         try {
             $this->assertDataType($key, $value);
             $this->bindInt($key, $value);
             $this->bindFloat($key, $value);
-            if (is_string($value)) {
-                $this->getCursor()->bindValue(":{$key}", $value, PDO::PARAM_STR);
-                $this->getLogger()->log("The parameter is bound.", Logger::INFO);
-                return;
-            }
+            $this->bindString($key, $value);
             if (is_null($value)) {
                 $this->getCursor()->bindValue(":{$key}", $value, PDO::PARAM_NULL);
                 $this->getLogger()->log("The parameter is bound.", Logger::INFO);
