@@ -235,6 +235,13 @@ class Database_Handler {
         }
     }
 
+    /**
+     * Binding parameters to the database query.
+     * @param array<string,mixed> $parameters The parameters to bind. Key is the parameter key, value is the parameter value.
+     * @return void
+     * @throws PDOException If an error occurs while binding the parameter.
+     * @throws InvalidArgumentException If the value is not of a valid data type.
+     */
     private function bindParameters(array $parameters): void
     {
         foreach ($parameters as $key => $value) {
