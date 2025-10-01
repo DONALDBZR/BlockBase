@@ -5,6 +5,7 @@ use DateTime;
 use RuntimeException;
 use UnexpectedValueException;
 
+
 class Logger {
     private static ?self $instance = null;
     private static string $directory;
