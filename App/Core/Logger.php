@@ -27,6 +27,11 @@ class Logger {
         self::$file = $file;
     }
 
+    /**
+     * Writing a log message to a file.
+     * @param string $message The log message to be written.
+     * @throws RuntimeException If the file does not exist.
+     */
     public static function log(string $message): void
     {
         $file_handler = fopen(self::getFile(), "a");
