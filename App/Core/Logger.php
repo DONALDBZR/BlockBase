@@ -31,7 +31,8 @@ class Logger {
     private function __construct() {
         self::setDirectory(__DIR__ . "/Storage/Logs/");
         $date = date("Ymd");
-        self::setFile("{$date}.log");
+        $directory = self::getDirectory();
+        self::setFile("{$directory}{$date}.log");
         self::rotateLog();
     }
 
