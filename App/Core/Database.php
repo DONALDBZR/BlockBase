@@ -3,6 +3,7 @@ namespace App\Core;
 
 use PDO;
 use App\Core\Logger;
+use InvalidArgumentException;
 use PDOException;
 use PDOStatement;
 
@@ -106,22 +107,81 @@ class Database_Handler {
      */
     private function initCursor(string $query): void
     {
-        if (is_null($this->getConnection())) {
-            $this->connect();
-        }
         if (!is_null($this->getCursor())) {
             return;
         }
         try {
+            $this->connect();
             $this->setCursor($this->getConnection()->prepare($query));
             $this->getLogger()->log("The cursor is initialized.", Logger::INFO);
         } catch (PDOException $error) {
-            $context = [
-                "file" => $error->getFile(),
-                "line" => $error->getLine(),
-                "message" => $error->getMessage()
-            ];
-            $this->getLogger()->log("The cursor cannot be initialized.", Logger::ERROR, $context);
+            throw new PDOException("The cursor cannot be initialized. - File: {$error->getFile()} - Line: {$error->getLine()} - Error: {$error->getMessage()}", 503);
+        }
+    }
+
+    /**
+     * Asserting that the given value is of a valid data type.
+     * @param string $key The key of the parameter.
+     * @param mixed $value The value of the parameter.
+     * @return void
+     * @throws InvalidArgumentException If the value is not of a valid data type.
+     */
+    private function assertDataType(string $key, mixed $value): void
+    {
+        $is_allowed = (is_int($value) || is_float($value) || is_string($value) || is_null($value) || is_resource($value));
+        if ($is_allowed) {
+            return;
+        }
+        $value = print_r($value, true);
+        throw new InvalidArgumentException("This data type is not allowed in this database. - Key: {$key} - Value: {$value}", 503);
+    }
+
+    private function bindParameter(string $key, mixed $value): void
+    {
+        try {
+            $this->assertDataType($key, $value);
+            $this->getCursor()->bindValue(':' . $key, $value);
+            $this->getLogger()->log("The parameter is bound.", Logger::INFO);
+        } catch (PDOException $error) {
+            throw new PDOException("The parameter cannot be bound. - File: {$error->getFile()} - Line: {$error->getLine()} - Error: {$error->getMessage()}", 503);
+        }
+    }
+
+    private function bindParameters(array $parameters): void
+    {
+        foreach ($parameters as $key => $value) {
+            $this->bindParameter($key, $value);
+        }
+    }
+
+    private function prepareCursor(string $query, array $parameters): void
+    {
+        try {
+            $this->initCursor($query);
+            $this->bindParameters($parameters);
+            foreach ($parameters as $key => $value) {
+                switch (gettype($value)) {
+                    case 'integer':
+                        $this->getCursor()->bindValue(':' . $key, $value, PDO::PARAM_INT);
+                        break;
+                    case 'double':
+                        $this->getCursor()->bindValue(':' . $key, $value, PDO::PARAM_STR);
+                        break;
+                    case 'string':
+                        $this->getCursor()->bindValue(':' . $key, $value, PDO::PARAM_STR);
+                        break;
+                    case 'NULL':
+                        $this->getCursor()->bindValue(':' . $key, null, PDO::PARAM_NULL);
+                        break;
+                    case 'resource':
+                        $this->getCursor()->bindValue(':' . $key, $value, PDO::PARAM_LOB);
+                        break;
+                    default:
+                        throw new InvalidArgumentException("The parameter ':{$key}' has an invalid data type.");
+                }
+            }
+        } catch (PDOException $error) {
+            throw new PDOException("The cursor cannot be prepared. - File: {$error->getFile()} - Line: {$error->getLine()} - Error: {$error->getMessage()}", 503);
         }
     }
 }
