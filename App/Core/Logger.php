@@ -118,6 +118,10 @@ class Logger {
         $data = "[{$severity}] [{$date}] [{$scope}] [{$_SERVER['REMOTE_ADDR']}] [{$process_id}] [{$thread_id}] {$message}";
         if (!empty($context)) {
             foreach ($context as $key => $value) {
+                if (!is_scalar($value)) {
+                    $data .= " - {$key}: " . print_r($value, true);
+                    continue;
+                }
                 $data .= " - {$key}: {$value}";
             }
         }
