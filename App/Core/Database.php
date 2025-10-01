@@ -196,6 +196,21 @@ class Database_Handler {
         $this->getLogger()->log("The parameter is bound.", Logger::INFO);
     }
 
+    /**
+     * Binding a blob parameter to the database query.
+     * @param string $key The key of the parameter.
+     * @param mixed $value The value of the parameter. Must be a resource.
+     * @return void
+     */
+    private function bindBlob(string $key, mixed $value): void
+    {
+        if (!is_resource($value)) {
+            return;
+        }
+        $this->getCursor()->bindValue(":{$key}", $value, PDO::PARAM_LOB);
+        $this->getLogger()->log("The parameter is bound.", Logger::INFO);
+    }
+
     private function bindParameter(string $key, mixed $value): void
     {
         try {
@@ -204,11 +219,7 @@ class Database_Handler {
             $this->bindFloat($key, $value);
             $this->bindString($key, $value);
             $this->bindNull($key, $value);
-            if (is_resource($value)) {
-                $this->getCursor()->bindValue(":{$key}", $value, PDO::PARAM_LOB);
-                $this->getLogger()->log("The parameter is bound.", Logger::INFO);
-                return;
-            }
+            $this->bindBlob($key, $value);
         } catch (PDOException $error) {
             throw new PDOException("The parameter cannot be bound. - File: {$error->getFile()} - Line: {$error->getLine()} - Error: {$error->getMessage()}", 503);
         } catch (InvalidArgumentException $error) {
