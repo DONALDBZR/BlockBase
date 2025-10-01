@@ -126,6 +126,10 @@ class Logger {
         fclose($file_handler);
     }
 
+    /**
+     * Rotating the log file based on the current date.
+     * @return void
+     */
     private static function rotateLog(): void
     {
         $date = new DateTime();
