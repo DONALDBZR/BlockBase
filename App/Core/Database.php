@@ -426,4 +426,31 @@ class Database_Handler {
             return [];
         }
     }
+
+    /**
+     * Manipulating data in the database by executing a query with the given parameters.
+     * @param string $query The database query.
+     * @param array<string,mixed> $parameters The parameters to bind. Key is the parameter key, value is the parameter value.
+     * @return bool True if the data was manipulated successfully, false otherwise.
+     */
+    private function manipulateData(string $query, array $parameters): bool
+    {
+        try {
+            $this->startTransaction();
+            $response = $this->execute($query, $parameters);
+            $this->commitTransaction();
+            $this->clearCursor();
+            return $response;
+        } catch (PDOException $error) {
+            $context = [
+                "Query" => $query,
+                "Parameters" => print_r($parameters, true),
+                "File" => $error->getFile(),
+                "Line" => $error->getLine(),
+                "Error" => $error->getMessage()
+            ];
+            $this->getLogger()->log("The data cannot be manipulated.", Logger::ERROR, $context);
+            return false;
+        }
+    }
 }
