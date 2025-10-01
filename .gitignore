@@ -1,3 +1,5 @@
 /.env
 /vendor/
-/.well-known/
+/Public/.well-known/
+/Public/.htaccess
+/.vscode/
