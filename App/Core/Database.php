@@ -283,4 +283,21 @@ class Database_Handler {
             throw new PDOException("The query cannot be executed. - Query: {$query} - Parameters: {$parameters} - File: {$error->getFile()} - Line: {$error->getLine()} - Error: {$error->getMessage()}", 503);
         }
     }
+
+    /**
+     * Retrieving all the data from the database query.
+     * @param string $query The database query.
+     * @param array<string,mixed> $parameters The parameters to bind. Key is the parameter key, value is the parameter value.
+     * @return array<int,array<string,mixed>> The data retrieved from the database query.
+     * @throws PDOException If an error occurs while retrieving the data.
+     */
+    private function fetchAll(string $query, array $parameters): array
+    {
+        try {
+            $this->execute($query, $parameters);
+            return $this->getCursor()->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $error) {
+            throw new PDOException("The data cannot be retrieved from the cursor. - Query: {$query} - Parameters: {$parameters} - File: {$error->getFile()} - Line: {$error->getLine()} - Error: {$error->getMessage()}", 503);
+        }
+    }
 }
