@@ -6,6 +6,7 @@ use RuntimeException;
 use UnexpectedValueException;
 
 class Logger {
+    private static ?self $instance = null;
     private static string $directory;
     private static string $file;
     public const INFO = "INFO";
@@ -18,6 +19,25 @@ class Logger {
         self::WARNING,
         self::ERROR
     ];
+
+    private function __construct() {}
+
+    /**
+     * Initializing the Logger instance with the given file and directory.
+     * @param string|null $file The file to write logs to. If null, uses the default file.
+     * @param string|null $directory The directory to write logs to. If null, uses the default directory.
+     * @return self The initialized Logger instance.
+     */
+    public static function init(
+        ?string $file = null,
+        ?string $directory = null
+    ): self
+    {
+        if (is_null(self::$instance)) {
+            self::$instance = new Logger($file, $directory);
+        }
+        return self::$instance;
+    }
 
     private static function getDirectory(): string
     {
@@ -96,7 +116,8 @@ class Logger {
     {
         $date = new DateTime();
         $name = $date->format("Ymd");
-        rename(self::getFile(), $name);
-        touch(self::getFile());
+        $file = self::getFile();
+        rename($file, "{$name}.log");
+        touch($file);
     }
 }
