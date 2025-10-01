@@ -265,4 +265,22 @@ class Database_Handler {
             throw new PDOException("The cursor cannot be prepared. - File: {$error->getFile()} - Line: {$error->getLine()} - Error: {$error->getMessage()}", 503);
         }
     }
+
+    /**
+     * Executing the database query from the prepared cursor.
+     * @param string $query The database query.
+     * @param array<string,mixed> $parameters The parameters to bind. Key is the parameter key, value is the parameter value.
+     * @return bool The result of the query.
+     * @throws PDOException If an error occurs while executing the query.
+     */
+    private function execute(string $query, array $parameters): bool
+    {
+        try {
+            $this->prepareCursor($query, $parameters);
+            return $this->getCursor()->execute();
+        } catch (PDOException $error) {
+            $parameters = print_r($parameters, true);
+            throw new PDOException("The query cannot be executed. - Query: {$query} - Parameters: {$parameters} - File: {$error->getFile()} - Line: {$error->getLine()} - Error: {$error->getMessage()}", 503);
+        }
+    }
 }
