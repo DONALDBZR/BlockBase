@@ -300,4 +300,23 @@ class Database_Handler {
             throw new PDOException("The data cannot be retrieved from the cursor. - Query: {$query} - Parameters: {$parameters} - File: {$error->getFile()} - Line: {$error->getLine()} - Error: {$error->getMessage()}", 503);
         }
     }
+
+    /**
+     * Retrieving data from the database query using a stream.
+     * @param string $query The database query.
+     * @param array<string,mixed> $parameters The parameters to bind. Key is the parameter key, value is the parameter value.
+     * @return iterable The data retrieved from the database query.
+     * @throws PDOException If an error occurs while retrieving the data.
+     */
+    private function fetchStream(string $query, array $parameters): iterable
+    {
+        try {
+            $this->execute($query, $parameters);
+            while ($row = $this->getCursor()->fetch(PDO::FETCH_ASSOC)) {
+                yield $row;
+            }
+        } catch (PDOException $error) {
+            throw new PDOException("The data cannot be retrieved from the cursor. - Query: {$query} - Parameters: {$parameters} - File: {$error->getFile()} - Line: {$error->getLine()} - Error: {$error->getMessage()}", 503);
+        }
+    }
 }
