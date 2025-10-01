@@ -4,6 +4,7 @@ namespace App\Core;
 use PDO;
 use App\Core\Logger;
 use PDOException;
+use PDOStatement;
 
 class Database_Handler {
     private string $host;
@@ -17,6 +18,7 @@ class Database_Handler {
     ];
     private ?PDO $connection = null;
     private Logger $logger;
+    private ?PDOStatement $cursor = null;
 
     /**
      * Initializing the database handler with the given environment variables.
@@ -55,6 +57,16 @@ class Database_Handler {
         $this->logger = $logger;
     }
 
+    private function setCursor(PDOStatement $cursor): void
+    {
+        $this->cursor = $cursor;
+    }
+
+    private function getCursor(): ?PDOStatement
+    {
+        return $this->cursor;
+    }
+
     /**
      * Establishing a connection to the database.
      * @return void
@@ -76,6 +88,33 @@ class Database_Handler {
                 )
             );
             $this->getLogger()->log("The database is connected.", Logger::INFO);
+        } catch (PDOException $error) {
+            $context = [
+                "file" => $error->getFile(),
+                "line" => $error->getLine(),
+                "message" => $error->getMessage()
+            ];
+            $this->getLogger()->log($error->getMessage(), Logger::ERROR, $context);
+        }
+    }
+
+    /**
+     * Setting the cursor for the database query.
+     * @param string $query The database query.
+     * @return void
+     * @throws PDOException If an error occurs while setting the cursor.
+     */
+    private function initCursor(string $query): void
+    {
+        if (is_null($this->getConnection())) {
+            $this->connect();
+        }
+        if (!is_null($this->getCursor())) {
+            return;
+        }
+        try {
+            $this->setCursor($this->getConnection()->prepare($query));
+            $this->getLogger()->log("The cursor is set.", Logger::INFO);
         } catch (PDOException $error) {
             $context = [
                 "file" => $error->getFile(),
