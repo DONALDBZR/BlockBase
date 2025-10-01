@@ -114,14 +114,14 @@ class Database_Handler {
         }
         try {
             $this->setCursor($this->getConnection()->prepare($query));
-            $this->getLogger()->log("The cursor is set.", Logger::INFO);
+            $this->getLogger()->log("The cursor is initialized.", Logger::INFO);
         } catch (PDOException $error) {
             $context = [
                 "file" => $error->getFile(),
                 "line" => $error->getLine(),
                 "message" => $error->getMessage()
             ];
-            $this->getLogger()->log($error->getMessage(), Logger::ERROR, $context);
+            $this->getLogger()->log("The cursor cannot be initialized.", Logger::ERROR, $context);
         }
     }
 }
