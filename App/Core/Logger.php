@@ -51,9 +51,18 @@ class Logger {
         return "{$class}::{$function}";
     }
 
+    /**
+     * Writing a log message to a file.
+     * @param string $message The message to log.
+     * @param ?string $severity The severity of the log message. Defaults to ERROR.
+     * @param array $context Additional context to log. Defaults to an empty array.
+     * @throws RuntimeException If the log file does not exist.
+     * @throws UnexpectedValueException If the severity is not one of the allowed values.
+     */
     public static function log(
         string $message,
-        ?string $severity = null
+        ?string $severity = null,
+        array $context = []
     ): void
     {
         if ($severity === null) {
@@ -70,7 +79,15 @@ class Logger {
         $datetime = new DateTime();
         $date = $datetime->format("Y-m-d H:i:s");
         $scope = self::getScope();
-        $data = "[{$severity}] [{$date}] [{$scope}] [{$client}] [{$process_id}] [{$thread_id}] {$message}\n";
+        $process_id = getmypid();
+        $thread_id = (isset($_SERVER["HTTP_X_REQUESTED_UID"])) ? intval($_SERVER["HTTP_X_REQUESTED_UID"]) : intval(get_current_user());
+        $data = "[{$severity}] [{$date}] [{$scope}] [{$_SERVER['REMOTE_ADDR']}] [{$process_id}] [{$thread_id}] {$message}";
+        if (!empty($context)) {
+            foreach ($context as $key => $value) {
+                $data .= " - {$key}: {$value}";
+            }
+        }
+        $data .= "\n";
         fwrite($file_handler, $data);
         fclose($file_handler);
     }
