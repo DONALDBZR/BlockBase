@@ -249,33 +249,19 @@ class Database_Handler {
         }
     }
 
+    /**
+     * Preparing the database query cursor with the given query and parameters.
+     * @param string $query The database query.
+     * @param array<string,mixed> $parameters The parameters to bind. Key is the parameter key, value is the parameter value.
+     * @return void
+     * @throws PDOException If an error occurs while preparing the cursor.
+     */
     private function prepareCursor(string $query, array $parameters): void
     {
         try {
             $this->initCursor($query);
             $this->bindParameters($parameters);
-            foreach ($parameters as $key => $value) {
-                switch (gettype($value)) {
-                    case 'integer':
-                        $this->getCursor()->bindValue(':' . $key, $value, PDO::PARAM_INT);
-                        break;
-                    case 'double':
-                        $this->getCursor()->bindValue(':' . $key, $value, PDO::PARAM_STR);
-                        break;
-                    case 'string':
-                        $this->getCursor()->bindValue(':' . $key, $value, PDO::PARAM_STR);
-                        break;
-                    case 'NULL':
-                        $this->getCursor()->bindValue(':' . $key, null, PDO::PARAM_NULL);
-                        break;
-                    case 'resource':
-                        $this->getCursor()->bindValue(':' . $key, $value, PDO::PARAM_LOB);
-                        break;
-                    default:
-                        throw new InvalidArgumentException("The parameter ':{$key}' has an invalid data type.");
-                }
-            }
-        } catch (PDOException $error) {
+        } catch (PDOException|InvalidArgumentException $error) {
             throw new PDOException("The cursor cannot be prepared. - File: {$error->getFile()} - Line: {$error->getLine()} - Error: {$error->getMessage()}", 503);
         }
     }
