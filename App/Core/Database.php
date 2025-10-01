@@ -319,4 +319,21 @@ class Database_Handler {
             throw new PDOException("The data cannot be retrieved from the cursor. - Query: {$query} - Parameters: {$parameters} - File: {$error->getFile()} - Line: {$error->getLine()} - Error: {$error->getMessage()}", 503);
         }
     }
+
+    /**
+     * Starting a database transaction if there is no transaction.
+     * @return void
+     * @throws PDOException If an error occurs while starting the transaction.
+     */
+    private function startTransaction(): void
+    {
+        if ($this->getConnection()->inTransaction()) {
+            return;
+        }
+        try {
+            $this->getConnection()->beginTransaction();
+        } catch (PDOException $error) {
+            throw new PDOException("The transaction cannot be started. - File: {$error->getFile()} - Line: {$error->getLine()} - Error: {$error->getMessage()}", 503);
+        }
+    }
 }
