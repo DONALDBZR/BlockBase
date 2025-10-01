@@ -336,4 +336,34 @@ class Database_Handler {
             throw new PDOException("The transaction cannot be started. - File: {$error->getFile()} - Line: {$error->getLine()} - Error: {$error->getMessage()}", 503);
         }
     }
+
+    /**
+     * Rolling back the current transaction.
+     * @param PDOException $previous_error The exception that caused the transaction to fail.
+     * @return void
+     * @throws PDOException If an error occurs while rolling back the transaction.
+     */
+    private function rollbackTransaction(PDOException $previous_error): void
+    {
+        try {
+            $this->getConnection()->rollBack();
+            throw new PDOException("The transaction cannot be committed. - File: {$previous_error->getFile()} - Line: {$previous_error->getLine()} - Error: {$previous_error->getMessage()}", 503);
+        } catch (PDOException $error) {
+            throw new PDOException("The transaction cannot be rolled back. - File: {$error->getFile()} - Line: {$error->getLine()} - Error: {$error->getMessage()}", 503);
+        }
+    }
+
+    /**
+     * Committing the database transaction.
+     * @return void
+     * @throws PDOException If an error occurs while committing the transaction.
+     */
+    private function commitTransaction(): void
+    {
+        try {
+            $this->getConnection()->commit();
+        } catch (PDOException $error) {
+            $this->rollbackTransaction($error);
+        }
+    }
 }
