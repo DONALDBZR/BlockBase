@@ -136,13 +136,49 @@ class Database_Handler {
         throw new InvalidArgumentException("This data type is not allowed in this database. - Key: {$key} - Value: {$value}", 503);
     }
 
+    /**
+     * Binding an integer parameter to the database query.
+     * @param string $key The key of the parameter.
+     * @param mixed $value The value of the parameter.
+     * @return void
+     */
+    private function bindInt(string $key, mixed $value): void
+    {
+        if (!is_int($value)) {
+            return;
+        }
+        $this->getCursor()->bindValue(":{$key}", $value, PDO::PARAM_INT);
+        $this->getLogger()->log("The parameter is bound.", Logger::INFO);
+    }
+
     private function bindParameter(string $key, mixed $value): void
     {
         try {
             $this->assertDataType($key, $value);
-            $this->getCursor()->bindValue(':' . $key, $value);
-            $this->getLogger()->log("The parameter is bound.", Logger::INFO);
+            $this->bindInt($key, $value);
+            if (is_float($value)) {
+                $this->getCursor()->bindValue(":{$key}", $value, PDO::PARAM_STR);
+                $this->getLogger()->log("The parameter is bound.", Logger::INFO);
+                return;
+            }
+            if (is_string($value)) {
+                $this->getCursor()->bindValue(":{$key}", $value, PDO::PARAM_STR);
+                $this->getLogger()->log("The parameter is bound.", Logger::INFO);
+                return;
+            }
+            if (is_null($value)) {
+                $this->getCursor()->bindValue(":{$key}", $value, PDO::PARAM_NULL);
+                $this->getLogger()->log("The parameter is bound.", Logger::INFO);
+                return;
+            }
+            if (is_resource($value)) {
+                $this->getCursor()->bindValue(":{$key}", $value, PDO::PARAM_LOB);
+                $this->getLogger()->log("The parameter is bound.", Logger::INFO);
+                return;
+            }
         } catch (PDOException $error) {
+            throw new PDOException("The parameter cannot be bound. - File: {$error->getFile()} - Line: {$error->getLine()} - Error: {$error->getMessage()}", 503);
+        } catch (InvalidArgumentException $error) {
             throw new PDOException("The parameter cannot be bound. - File: {$error->getFile()} - Line: {$error->getLine()} - Error: {$error->getMessage()}", 503);
         }
     }
