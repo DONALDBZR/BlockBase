@@ -6,6 +6,30 @@ use App\Core\Errors\ClassNotFoundException;
 
 class ORM_Class_Loader
 {
+    private string $base_directory;
+
+    /**
+     * Initializing the `ORM_Class_Loader` with the given base directory.
+     * @param string $base_directory The base directory to search for classes in.
+     */
+    public function __construct(
+        string $base_directory = __DIR__ . "/../../"
+    )
+    {
+        $directory = rtrim($base_directory, "/");
+        $this->setBaseDirectory("{$directory}/");
+    }
+
+    public function getBaseDirectory(): string
+    {
+        return $this->base_directory;
+    }
+
+    public function setBaseDirectory(string $base_directory): void
+    {
+        $this->base_directory = $base_directory;
+    }
+
     /**
      * Registering this class loader with the SPL autoloader.
      * @return void
@@ -33,9 +57,7 @@ class ORM_Class_Loader
         if (strpos($class_name, __NAMESPACE__) !== 0) {
             return;
         }
-        $directory = dirname(__DIR__, 2);
-        $full_directory = "{$directory}/";
-        $file = str_replace(
+        $relative_path = str_replace(
             "\\",
             "/",
             substr(
@@ -43,10 +65,10 @@ class ORM_Class_Loader
                 strlen(__NAMESPACE__) + 1
             )
         );
-        $file_name = "{$full_directory}{$file}.php";
-        if (!file_exists($file_name)) {
-            throw new ClassNotFoundException("The file is not found. - File: {$file_name} - Class: {$class_name}");
+        $file_path = "{$this->getBaseDirectory()}{$relative_path}.php";
+        if (!file_exists($file_path)) {
+            throw new ClassNotFoundException("The file is not found. - File: {$file_path} - Class: {$class_name}");
         }
-        require_once $file_name;
+        require_once $file_path;
     }
 }
