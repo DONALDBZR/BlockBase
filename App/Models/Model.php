@@ -234,4 +234,25 @@ abstract class Model
         $this->setParameters($parameters);
         return $this->getDatabaseHandler()->put($this->getQuery(), $this->getParameters());
     }
+
+    /**
+     * Deleting data from the database by executing a query with the given parameters.
+     * @param array<string,mixed> $conditions The associative array containing the condition data.
+     * @return bool True if the data was deleted successfully, false otherwise.
+     */
+    public function delete(array $conditions = []): bool
+    {
+        $condition = [];
+        foreach ($conditions as $key => $value) {
+            $condition[] = "`{$key}` = :{$key}";
+        }
+        $condition = implode(" AND ", $condition);
+        $this->setQuery("DELETE FROM {$this->getTableName()} WHERE {$condition}");
+        $parameters = [];
+        foreach ($conditions as $key => $value) {
+            $parameters[":{$key}"] = $this->getValue($value);
+        }
+        $this->setParameters($parameters);
+        return $this->getDatabaseHandler()->delete($this->getQuery(), $this->getParameters());
+    }
 }
