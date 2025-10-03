@@ -82,6 +82,20 @@ abstract class Model
     }
 
     /**
+     * Appending conditions to the query.
+     * @param array<int,string> $conditions The conditions to filter the results.
+     * @return void
+     */
+    private function setConditions(array $conditions): void
+    {
+        if (empty($conditions)) {
+            return;
+        }
+        $condition = implode(" AND ", array_map(fn($condition) => "`{$condition}`", $conditions));
+        $this->setQuery("{$this->getQuery()} WHERE {$condition}");
+    }
+
+    /**
      * Converting a value of any type to a type that is supported by the database.
      * @param mixed $value The value to be converted.
      * @return int|float|string|bool|null|resource The converted value.
