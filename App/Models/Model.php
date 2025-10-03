@@ -2,280 +2,81 @@
 namespace App\Models;
 
 use App\Core\Database_Handler;
-use UnexpectedValueException;
 
 
 /**
- * It is the main model for interacting with a database table.
+ * It provides a base for all models in the application.  It includes methods for retrieving data from the database, as well as for creating, updating, and deleting data.
  * @package App\Models
+ * @property ?Database_Handler $database_handler The database handler to use for queries.
+ * @method static array<int,self> all() Retrieving all records from the database table.
+ * @method static self find(int $id) Retrieving a single record from the database table based on the given ID.
+ * @method static int create(array $data) Creating a new record in the database table.
+ * @method static void update(int $id, array $data) Updating an existing record in the database table.
+ * @method static void delete(int $id) Deleting a record from the database table.
  */
-class Model
+abstract class Model
 {
     /**
-     * The database handler used for queries.
-     * @var Database_Handler
+     * The database handler for the model.
+     *
+     * @var ?Database_Handler
      */
-    private Database_Handler $database_handler;
-    /**
-     * The name of the database table to query.
-     * @var string
-     */
-    private string $table_name;
-    /**
-     * The query string for the current operation.
-     * @var string|null
-     */
-    private ?string $query;
-    /**
-     * The parameters for the current operation.
-     * @var array<string,mixed>|null
-     */
-    private ?array $parameters;
+    private static ?Database_Handler $database_handler;
 
     /**
-     * Initializing the `Model` instance with the given database handler and table name.
-     * @param Database_Handler $database_handler The database handler to use for queries.
-     * @param string $table_name The name of the database table to query.
+     * Constructor for the model.
+     *
+     * @param ?Database_Handler $database_handler The database handler to use for queries.
      */
-    public function __construct(Database_Handler $database_handler, string $table_name)
+    public function __construct(
+        ?Database_Handler $database_handler = null
+    )
     {
-        $this->setDatabaseHandler($database_handler);
-        $this->setTableName($table_name);
-        $this->setQuery(null);
-        $this->setParameters(null);
+        self::setDatabaseHandler($database_handler ?? new Database_Handler());
     }
 
-    private function getDatabaseHandler(): Database_Handler
+    public static function getDatabaseHandler(): ?Database_Handler
     {
-        return $this->database_handler;
+        return self::$database_handler;
     }
 
-    private function setDatabaseHandler(Database_Handler $database_handler): void
+    public static function setDatabaseHandler(?Database_Handler $database_handler)
     {
-        $this->database_handler = $database_handler;
-    }
-
-    private function getTableName(): string
-    {
-        return $this->table_name;
-    }
-
-    private function setTableName(string $table_name): void
-    {
-        $this->table_name = $table_name;
-    }
-
-    private function getQuery(): ?string
-    {
-        return $this->query;
-    }
-
-    private function setQuery(?string $query): void
-    {
-        $this->query = $query;
-    }
-
-    private function getParameters(): ?array
-    {
-        return $this->parameters;
-    }
-
-    private function setParameters(?array $parameters): void
-    {
-        $this->parameters = $parameters;
+        self::$database_handler = $database_handler;
     }
 
     /**
-     * Retrieving models from the database based on the given parameters.
-     * @param array<int,string> $columns The columns to select. Defaults to ["*"].
-     * @param array<string,mixed> $conditions The conditions to filter the results. Defaults to [].
-     * @param array<int,string> $ordering The ordering to apply to the results. Defaults to [].
-     * @param int|null $limitation The limitation to apply to the results. Defaults to null.
-     * @return array<int,Model> The retrieved models.
+     * Retrieving all records from the database table.
+     * @return array<int,self> The records retrieved from the database table.
      */
-    public function get(
-        array $columns = ["*"],
-        array $conditions = [],
-        array $ordering = [],
-        ?int $limitation = null
-    ): array
-    {
-        $fields = implode(", ", array_map(fn($column) => "`{$column}`", $columns));
-        $this->setQuery("SELECT {$fields} FROM `{$this->getTableName()}`");
-        $this->setConditions($conditions);
-        $this->setOrdering($ordering);
-        $this->setLimitation($limitation);
-        $response = $this->getDatabaseHandler()->get($this->getQuery(), $this->getParameters());
-        $models = [];
-        foreach ($response as $row) {
-            $model = new static($this->getDatabaseHandler(), $this->getTableName());
-            $model->setAttributes($row);
-            $models[] = $model;
-        }
-        return $models;
-    }
+    abstract public static function all(): array;
 
     /**
-     * Appending a LIMIT clause to the query.
-     * @param int|null $limitation The limitation to apply to the results. If null, no limitation is applied.
+     * Retrieving a single record from the database table based on the given ID.
+     * @param int $id The ID of the record to retrieve.
+     * @return self The record retrieved from the database table.
+     */
+    abstract public static function find(int $id): self;
+
+    /**
+     * Creating a new record in the database table.
+     * @param array $data The data to insert into the database table.
+     * @return int The ID of the newly created record.
+     */
+    abstract public static function create(array $data): int;
+
+    /**
+     * Updating an existing record in the database table.
+     * @param int $id The ID of the record to update.
+     * @param array $data The data to update in the database table.
      * @return void
      */
-    private function setLimitation(?int $limitation): void
-    {
-        if (is_null($limitation)) {
-            return;
-        }
-        $this->setQuery("{$this->getQuery()} LIMIT {$limitation}");
-    }
+    abstract public static function update(int $id, array $data): void;
 
     /**
-     * Appending an ORDER BY clause to the query.
-     * @param array<int,string> $ordering The ordering to apply to the results.
+     * Deleting a record from the database table.
+     * @param int $id The ID of the record to delete.
      * @return void
      */
-    private function setOrdering(array $ordering): void
-    {
-        if (empty($ordering)) {
-            return;
-        }
-        $order = implode(", ", array_map(fn($order) => "`{$order}`", $ordering));
-        $this->setQuery("{$this->getQuery()} ORDER BY {$order}");
-    }
-
-    /**
-     * Appending conditions to the query.
-     * @param array<string,mixed> $conditions The conditions to filter the results.
-     * @return void
-     */
-    private function setConditions(array $conditions): void
-    {
-        if (empty($conditions)) {
-            return;
-        }
-        $where = [];
-        $parameters = [];
-        foreach ($conditions as $column => $value) {
-            $parameter = ":{$column}";
-            $where[] = "`{$column}` = {$parameter}";
-            $parameters[$parameter] = $this->getValue($value);
-        }
-        $this->setParameters($parameters);
-        $condition = implode(" AND ", $where);
-        $this->setQuery("{$this->getQuery()} WHERE {$condition}");
-    }
-
-    /**
-     * Converting a value of any type to a type that is supported by the database.
-     * @param mixed $value The value to be converted.
-     * @return int|float|string|bool|null|resource The converted value.
-     * @throws UnexpectedValueException If the value is of an unsupported type.
-     */
-    private function getValue(mixed $value): mixed
-    {
-        if (is_int($value)) {
-            return intval($value);
-        } else if (is_float($value)) {
-            return floatval($value);
-        } else if (is_string($value)) {
-            return strval($value);
-        } else if (is_bool($value)) {
-            return (bool) $value;
-        } else if (is_null($value)) {
-            return null;
-        } else if (is_resource($value)) {
-            return $value;
-        } else {
-            throw new UnexpectedValueException("The value is of an unsupported type.");
-        }
-    }
-
-    /**
-     * Setting the attributes of the model object based on the given data.
-     * @param array<string,mixed> $data The associative array containing the attribute data.
-     * @return void
-     */
-    protected function setAttributes(array $data): void
-    {
-        foreach ($data as $key => $value) {
-            $this->$key = $this->getValue($value);
-        }
-    }
-
-    /**
-     * Inserting data into the database by executing a query with the given parameters.
-     * @param array<string,mixed> $data The associative array containing the attribute data.
-     * @return bool True if the data was inserted successfully, false otherwise.
-     */
-    public function post(array $data): bool
-    {
-        $columns = array_keys($data);
-        $column = implode(", ", $columns);
-        $parameter_keys = array_map(function($column) {
-            return ":{$column}";
-        }, $columns);
-        $value = implode(", ", $parameter_keys);
-        $this->setQuery("INSERT INTO {$this->getTableName()} ({$column}) VALUES ({$value})");
-        $parameters = [];
-        foreach ($data as $key => $value) {
-            $parameters[":{$key}"] = $this->getValue($value);
-        }
-        $this->setParameters($parameters);
-        return $this->getDatabaseHandler()->post($this->getQuery(), $this->getParameters());
-    }
-
-    /**
-     * Updating data in the database by executing a query with the given parameters.
-     * @param array<string,mixed> $data The associative array containing the attribute data.
-     * @param array<string,mixed> $conditions The associative array containing the condition data.
-     * @return bool True if the data was updated successfully, false otherwise.
-     */
-    public function put(
-        array $data,
-        array $conditions = []
-    ): bool
-    {
-        $set = [];
-        foreach ($data as $key => $value) {
-            $set[] = "`{$key}` = :{$key}";
-        }
-        $set = implode(", ", $set);
-        $condition = [];
-        foreach ($conditions as $key => $value) {
-            $condition[] = "`{$key}` = :{$key}_condition";
-        }
-        $condition = implode(" AND ", $condition);
-        $this->setQuery("UPDATE {$this->getTableName()} SET {$set} WHERE {$condition}");
-        $parameters = [];
-        foreach ($data as $key => $value) {
-            $parameters[":{$key}"] = $this->getValue($value);
-        }
-        foreach ($conditions as $key => $value) {
-            $parameters[":{$key}_condition"] = $this->getValue($value);
-        }
-        $this->setParameters($parameters);
-        return $this->getDatabaseHandler()->put($this->getQuery(), $this->getParameters());
-    }
-
-    /**
-     * Deleting data from the database by executing a query with the given parameters.
-     * @param array<string,mixed> $conditions The associative array containing the condition data.
-     * @return bool True if the data was deleted successfully, false otherwise.
-     */
-    public function delete(
-        array $conditions = []
-    ): bool
-    {
-        $condition = [];
-        foreach ($conditions as $key => $value) {
-            $condition[] = "`{$key}` = :{$key}";
-        }
-        $condition = implode(" AND ", $condition);
-        $this->setQuery("DELETE FROM {$this->getTableName()} WHERE {$condition}");
-        $parameters = [];
-        foreach ($conditions as $key => $value) {
-            $parameters[":{$key}"] = $this->getValue($value);
-        }
-        $this->setParameters($parameters);
-        return $this->getDatabaseHandler()->delete($this->getQuery(), $this->getParameters());
-    }
+    abstract public static function delete(int $id): void;
 }
