@@ -4,6 +4,13 @@ namespace App\Models\ORM;
 use App\Core\Errors\ClassNotFoundException;
 
 
+/**
+ * It is for loading classes from the Object-Relational Mapper namespace.
+ * @package App\Models\ORM
+ * @property string $base_directory The base directory to search for classes in.
+ * @method void register() Registering this class loader with the SPL autoloader.
+ * @method void loadClass(string $class_name) Attempting to load a class from the Object-Relational Mapper namespace.
+ */
 class ORM_Class_Loader
 {
     private string $base_directory;
@@ -47,7 +54,7 @@ class ORM_Class_Loader
     }
 
     /**
-     * Attempting to load a class from the ORM namespace.
+     * Attempting to load a class from the Object-Relational Mapper namespace.
      * @param string $class_name The name of the class to load.
      * @return void
      * @throws ClassNotFoundException If the class does not exist or is not instantiable.
