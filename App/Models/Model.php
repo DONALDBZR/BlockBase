@@ -11,6 +11,7 @@ abstract class Model
     private array $attributes;
     private Database_Handler $database_handler;
     private string $table_name;
+    private string $query;
 
     public function __construct(Database_Handler $database_handler, string $table_name)
     {
@@ -30,25 +31,50 @@ abstract class Model
 
     private function getTableName(): string
     {
-        return $this->$table_name;
+        return $this->table_name;
     }
 
     private function setTableName(string $table_name): void
     {
-        $this->$table_name = $table_name;
+        $this->table_name = $table_name;
+    }
+
+    private function getQuery(): string
+    {
+        return $this->query;
+    }
+
+    private function setQuery(string $query): void
+    {
+        $this->query = $query;
     }
 
     /**
-     * Retrieving all records from the table associated with this model.
-     * @return array<int,Model> An array of model objects, each representing a record from the table.
+     * Retrieving models from the database based on the given parameters.
+     * @param array<int,string> $columns The columns to select. Defaults to ["*"].
+     * @param array<int,string> $conditions The conditions to filter the results. Defaults to [].
+     * @param array<int,string> $ordering The ordering to apply to the results. Defaults to [].
+     * @param int|null $limitation The limitation to apply to the results. Defaults to null.
+     * @param array<string,mixed> $parameters The parameters to bind to the query. Defaults to [].
+     * @return array<int,Model> The retrieved models.
      */
-    public function get(): array
+    public function get(
+        array $columns = ["*"],
+        array $conditions = [],
+        array $ordering = [],
+        ?int $limitation = null,
+        array $parameters = []
+    ): array
     {
-        $query = "SELECT * FROM `{$this->getTableName()}`";
-        $response = $this->getDatabaseHandler()->get($query);
+        $fields = implode(", ", array_map(fn($column) => "`{$column}`", $columns));
+        $this->setQuery("SELECT {$fields} FROM `{$this->getTableName()}`");
+        $this->setConditions($conditions);
+        $this->setOrdering($ordering);
+        $this->setLimitation($limitation);
+        $response = $this->getDatabaseHandler()->get($this->getQuery(), $parameters);
         $models = [];
         foreach ($response as $row) {
-            $model = new static($this->getDatabaseHandler());
+            $model = new static($this->getDatabaseHandler(), $this->getTableName());
             $model->setAttributes($row);
             $models[] = $model;
         }
@@ -90,39 +116,5 @@ abstract class Model
         foreach ($data as $key => $value) {
             $this->$key = $this->getValue($value);
         }
-    }
-
-    public function find(mixed $identifier): ?self
-    {
-        $table_name =::getTableName();
-        $query = "SELECT * FROM `{$table_name}` WHERE identifier = :identifier";
-        $parameters = [
-            ":identifier" => $identifier
-        ];
-        $response = $this->getDatabaseHandler()->get($query, $parameters);
-        if (empty($response)) {
-            return null;
-        }
-        $model = new($this->getDatabaseHandler());
-        $model->setAttributes($response[0]);
-        return $model;
-    }
-
-    abstract public function findAll(): array;
-
-    abstract public function create(array $data): self;
-
-    abstract public function update(string $id, array $data): self;
-
-    abstract public function delete(string $id): bool;
-
-    protected function executeQuery(string $query, array $params = []): array
-    {
-        return $this->databaseHandler->executeQuery($query, $params);
-    }
-
-    protected function executeTransaction(callable $callback): bool
-    {
-        return $this->databaseHandler->executeTransaction($callback);
     }
 }
