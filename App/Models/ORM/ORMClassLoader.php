@@ -1,8 +1,8 @@
 <?php
 namespace App\Models\ORM;
 
-use ReflectionClass;
 use ReflectionException;
+
 
 class ORM_Class_Loader
 {
@@ -46,10 +46,6 @@ class ORM_Class_Loader
         $file_name = "{$full_directory}{$file}.php";
         if (!file_exists($file_name)) {
             throw new ReflectionException("The file is not found. - File: {$file_name} - Class: {$class_name}");
-        }
-        $reflection_class = new ReflectionClass($class_name);
-        if (!$reflection_class->isInstantiable()) {
-            return;
         }
         require_once $file_name;
     }
