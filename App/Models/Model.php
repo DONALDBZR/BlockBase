@@ -82,6 +82,19 @@ abstract class Model
     }
 
     /**
+     * Appending a LIMIT clause to the query.
+     * @param int|null $limitation The limitation to apply to the results. If null, no limitation is applied.
+     * @return void
+     */
+    private function setLimitation(?int $limitation): void
+    {
+        if (is_null($limitation)) {
+            return;
+        }
+        $this->setQuery("{$this->getQuery()} LIMIT {$limitation}");
+    }
+
+    /**
      * Appending an ORDER BY clause to the query.
      * @param array<int,string> $ordering The ordering to apply to the results.
      * @return void
