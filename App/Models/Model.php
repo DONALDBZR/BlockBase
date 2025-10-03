@@ -179,4 +179,26 @@ abstract class Model
             $this->$key = $this->getValue($value);
         }
     }
+
+    /**
+     * Inserting data into the database by executing a query with the given parameters.
+     * @param array<string,mixed> $data The associative array containing the attribute data.
+     * @return bool True if the data was inserted successfully, false otherwise.
+     */
+    public function post(array $data): bool
+    {
+        $columns = array_keys($data);
+        $column = implode(", ", $columns);
+        $parameter_keys = array_map(function($column) {
+            return ":{$column}";
+        }, $columns);
+        $value = implode(", ", $parameter_keys);
+        $this->setQuery("INSERT INTO {$this->getTableName()} ({$column}) VALUES ({$value})");
+        $parameters = [];
+        foreach ($data as $key => $value) {
+            $parameters[":{$key}"] = $this->getValue($value);
+        }
+        $this->setParameters($parameters);
+        return $this->getDatabaseHandler()->post($this->getQuery(), $this->getParameters());
+    }
 }
