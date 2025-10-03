@@ -201,4 +201,37 @@ abstract class Model
         $this->setParameters($parameters);
         return $this->getDatabaseHandler()->post($this->getQuery(), $this->getParameters());
     }
+
+    /**
+     * Updating data in the database by executing a query with the given parameters.
+     * @param array<string,mixed> $data The associative array containing the attribute data.
+     * @param array<string,mixed> $conditions The associative array containing the condition data.
+     * @return bool True if the data was updated successfully, false otherwise.
+     */
+    public function put(
+        array $data,
+        array $conditions = []
+    ): bool
+    {
+        $set = [];
+        foreach ($data as $key => $value) {
+            $set[] = "`{$key}` = :{$key}";
+        }
+        $set = implode(", ", $set);
+        $condition = [];
+        foreach ($conditions as $key => $value) {
+            $condition[] = "`{$key}` = :{$key}_condition";
+        }
+        $condition = implode(" AND ", $condition);
+        $this->setQuery("UPDATE {$this->getTableName()} SET {$set} WHERE {$condition}");
+        $parameters = [];
+        foreach ($data as $key => $value) {
+            $parameters[":{$key}"] = $this->getValue($value);
+        }
+        foreach ($conditions as $key => $value) {
+            $parameters[":{$key}_condition"] = $this->getValue($value);
+        }
+        $this->setParameters($parameters);
+        return $this->getDatabaseHandler()->put($this->getQuery(), $this->getParameters());
+    }
 }
