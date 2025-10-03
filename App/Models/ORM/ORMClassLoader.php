@@ -1,7 +1,7 @@
 <?php
 namespace App\Models\ORM;
 
-use ReflectionException;
+use App\Core\Errors\ClassNotFoundException;
 
 
 class ORM_Class_Loader
@@ -26,7 +26,7 @@ class ORM_Class_Loader
      * Attempting to load a class from the ORM namespace.
      * @param string $class_name The name of the class to load.
      * @return void
-     * @throws ReflectionException If the class does not exist or is not instantiable.
+     * @throws ClassNotFoundException If the class does not exist or is not instantiable.
      */
     public function loadClass(string $class_name): void
     {
@@ -45,7 +45,7 @@ class ORM_Class_Loader
         );
         $file_name = "{$full_directory}{$file}.php";
         if (!file_exists($file_name)) {
-            throw new ReflectionException("The file is not found. - File: {$file_name} - Class: {$class_name}");
+            throw new ClassNotFoundException("The file is not found. - File: {$file_name} - Class: {$class_name}");
         }
         require_once $file_name;
     }
