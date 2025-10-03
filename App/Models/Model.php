@@ -9,7 +9,7 @@ use App\Core\Database_Handler;
  * @package App\Models
  * @property ?Database_Handler $database_handler The database handler to use for queries.
  * @method static array<int,self> all() Retrieving all records from the database table.
- * @method static self find(int $id) Retrieving a single record from the database table based on the given ID.
+ * @method static ?self find(int $id) Retrieving a single record from the database table based on the given ID.
  * @method static int create(array $data) Creating a new record in the database table.
  * @method static void update(int $id, array $data) Updating an existing record in the database table.
  * @method static void delete(int $id) Deleting a record from the database table.
@@ -54,9 +54,9 @@ abstract class Model
     /**
      * Retrieving a single record from the database table based on the given ID.
      * @param int $id The ID of the record to retrieve.
-     * @return self The record retrieved from the database table.
+     * @return ?self The record retrieved from the database table.
      */
-    abstract public static function find(int $id): self;
+    abstract public static function find(int $id): ?self;
 
     /**
      * Creating a new record in the database table.
