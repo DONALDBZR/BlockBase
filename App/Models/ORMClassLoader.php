@@ -11,7 +11,7 @@ class ORM_Class_Loader extends ClassLoader
      * Registering this class loader with the SPL autoloader.
      * @return void
      */
-    public function enqueue(): void
+    public function register(): void
     {
         spl_autoload_register(
             [
