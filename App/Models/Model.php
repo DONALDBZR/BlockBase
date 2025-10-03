@@ -4,7 +4,7 @@ namespace App\Models;
 use App\Core\Database_Handler;
 use Attribute;
 use Enum;
-
+use UnexpectedValueException;
 
 abstract class Model
 {
@@ -56,6 +56,31 @@ abstract class Model
     }
 
     /**
+     * Converting a value of any type to a type that is supported by the database.
+     * @param mixed $value The value to be converted.
+     * @return int|float|string|bool|null|resource The converted value.
+     * @throws UnexpectedValueException If the value is of an unsupported type.
+     */
+    private function getValue(mixed $value): mixed
+    {
+        if (is_int($value)) {
+            return intval($value);
+        } else if (is_float($value)) {
+            return floatval($value);
+        } else if (is_string($value)) {
+            return strval($value);
+        } else if (is_bool($value)) {
+            return (bool) $value;
+        } else if (is_null($value)) {
+            return null;
+        } else if (is_resource($value)) {
+            return $value;
+        } else {
+            throw new UnexpectedValueException("The value is of an unsupported type.");
+        }
+    }
+
+    /**
      * Setting the attributes of the model object based on the given data.
      * @param array<string,mixed> $data The associative array containing the attribute data.
      * @return void
@@ -63,21 +88,7 @@ abstract class Model
     protected function setAttributes(array $data): void
     {
         foreach ($data as $key => $value) {
-            if (is_int($value)) {
-                $this->$key = (int)$value;
-            } elseif (is_float($value)) {
-                $this->$key = (float)$value;
-            } elseif (is_string($value)) {
-                $this->$key = (string)$value;
-            } elseif (is_bool($value)) {
-                $this->$key = (bool)$value;
-            } elseif (is_null($value)) {
-                $this->$key = null;
-            } elseif (is_resource($value)) {
-                $this->$key = $value;
-            } else {
-                throw new UnexpectedValueException("The value is of an unsupported type.");
-            }
+            $this->$key = $this->getValue($value);
         }
     }
 
