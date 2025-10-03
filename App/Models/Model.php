@@ -82,6 +82,20 @@ abstract class Model
     }
 
     /**
+     * Appending an ORDER BY clause to the query.
+     * @param array<int,string> $ordering The ordering to apply to the results.
+     * @return void
+     */
+    private function setOrdering(array $ordering): void
+    {
+        if (empty($ordering)) {
+            return;
+        }
+        $order = implode(", ", array_map(fn($order) => "`{$order}`", $ordering));
+        $this->setQuery("{$this->getQuery()} ORDER BY {$order}");
+    }
+
+    /**
      * Appending conditions to the query.
      * @param array<int,string> $conditions The conditions to filter the results.
      * @return void
