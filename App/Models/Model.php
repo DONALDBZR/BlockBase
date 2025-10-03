@@ -2,8 +2,6 @@
 namespace App\Models;
 
 use App\Core\Database_Handler;
-use Attribute;
-use Enum;
 use UnexpectedValueException;
 
 abstract class Model
@@ -12,6 +10,7 @@ abstract class Model
     private Database_Handler $database_handler;
     private string $table_name;
     private string $query;
+    private array $parameters;
 
     public function __construct(Database_Handler $database_handler, string $table_name)
     {
@@ -49,21 +48,29 @@ abstract class Model
         $this->query = $query;
     }
 
+    private function getParameters(): array
+    {
+        return $this->parameters;
+    }
+
+    private function setParameters(array $parameters): void
+    {
+        $this->parameters = $parameters;
+    }
+
     /**
      * Retrieving models from the database based on the given parameters.
      * @param array<int,string> $columns The columns to select. Defaults to ["*"].
-     * @param array<int,string> $conditions The conditions to filter the results. Defaults to [].
+     * @param array<string,string> $conditions The conditions to filter the results. Defaults to [].
      * @param array<int,string> $ordering The ordering to apply to the results. Defaults to [].
      * @param int|null $limitation The limitation to apply to the results. Defaults to null.
-     * @param array<string,mixed> $parameters The parameters to bind to the query. Defaults to [].
      * @return array<int,Model> The retrieved models.
      */
     public function get(
         array $columns = ["*"],
         array $conditions = [],
         array $ordering = [],
-        ?int $limitation = null,
-        array $parameters = []
+        ?int $limitation = null
     ): array
     {
         $fields = implode(", ", array_map(fn($column) => "`{$column}`", $columns));
@@ -71,7 +78,7 @@ abstract class Model
         $this->setConditions($conditions);
         $this->setOrdering($ordering);
         $this->setLimitation($limitation);
-        $response = $this->getDatabaseHandler()->get($this->getQuery(), $parameters);
+        $response = $this->getDatabaseHandler()->get($this->getQuery(), $this->getParameters());
         $models = [];
         foreach ($response as $row) {
             $model = new static($this->getDatabaseHandler(), $this->getTableName());
@@ -110,7 +117,7 @@ abstract class Model
 
     /**
      * Appending conditions to the query.
-     * @param array<int,string> $conditions The conditions to filter the results.
+     * @param array<string,string> $conditions The conditions to filter the results.
      * @return void
      */
     private function setConditions(array $conditions): void
@@ -118,7 +125,15 @@ abstract class Model
         if (empty($conditions)) {
             return;
         }
-        $condition = implode(" AND ", array_map(fn($condition) => "`{$condition}`", $conditions));
+        $where = [];
+        $parameters = [];
+        foreach ($conditions as $column => $value) {
+            $parameter = ":{$column}";
+            $where[] = "`{$column}` = {$parameter}";
+            $parameters[$parameter] = $this->getValue($value);
+        }
+        $this->setParameters($parameters);
+        $condition = implode(" AND ", $where);
         $this->setQuery("{$this->getQuery()} WHERE {$condition}");
     }
 
