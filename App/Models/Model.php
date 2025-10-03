@@ -6,16 +6,22 @@ use UnexpectedValueException;
 
 abstract class Model
 {
-    private array $attributes;
     private Database_Handler $database_handler;
     private string $table_name;
-    private string $query;
-    private array $parameters;
+    private ?string $query;
+    private ?array $parameters;
 
+    /**
+     * Initializing the `Model` instance with the given database handler and table name.
+     * @param Database_Handler $database_handler The database handler to use for queries.
+     * @param string $table_name The name of the database table to query.
+     */
     public function __construct(Database_Handler $database_handler, string $table_name)
     {
         $this->setDatabaseHandler($database_handler);
         $this->setTableName($table_name);
+        $this->setQuery(null);
+        $this->setParameters(null);
     }
 
     private function getDatabaseHandler(): Database_Handler
@@ -38,22 +44,22 @@ abstract class Model
         $this->table_name = $table_name;
     }
 
-    private function getQuery(): string
+    private function getQuery(): ?string
     {
         return $this->query;
     }
 
-    private function setQuery(string $query): void
+    private function setQuery(?string $query): void
     {
         $this->query = $query;
     }
 
-    private function getParameters(): array
+    private function getParameters(): ?array
     {
         return $this->parameters;
     }
 
-    private function setParameters(array $parameters): void
+    private function setParameters(?array $parameters): void
     {
         $this->parameters = $parameters;
     }
@@ -61,7 +67,7 @@ abstract class Model
     /**
      * Retrieving models from the database based on the given parameters.
      * @param array<int,string> $columns The columns to select. Defaults to ["*"].
-     * @param array<string,string> $conditions The conditions to filter the results. Defaults to [].
+     * @param array<string,mixed> $conditions The conditions to filter the results. Defaults to [].
      * @param array<int,string> $ordering The ordering to apply to the results. Defaults to [].
      * @param int|null $limitation The limitation to apply to the results. Defaults to null.
      * @return array<int,Model> The retrieved models.
@@ -117,7 +123,7 @@ abstract class Model
 
     /**
      * Appending conditions to the query.
-     * @param array<string,string> $conditions The conditions to filter the results.
+     * @param array<string,mixed> $conditions The conditions to filter the results.
      * @return void
      */
     private function setConditions(array $conditions): void
