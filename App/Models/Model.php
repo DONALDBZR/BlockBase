@@ -4,11 +4,32 @@ namespace App\Models;
 use App\Core\Database_Handler;
 use UnexpectedValueException;
 
-abstract class Model
+
+/**
+ * It is the main model for interacting with a database table.
+ * @package App\Models
+ */
+class Model
 {
+    /**
+     * The database handler used for queries.
+     * @var Database_Handler
+     */
     private Database_Handler $database_handler;
+    /**
+     * The name of the database table to query.
+     * @var string
+     */
     private string $table_name;
+    /**
+     * The query string for the current operation.
+     * @var string|null
+     */
     private ?string $query;
+    /**
+     * The parameters for the current operation.
+     * @var array<string,mixed>|null
+     */
     private ?array $parameters;
 
     /**
@@ -240,7 +261,9 @@ abstract class Model
      * @param array<string,mixed> $conditions The associative array containing the condition data.
      * @return bool True if the data was deleted successfully, false otherwise.
      */
-    public function delete(array $conditions = []): bool
+    public function delete(
+        array $conditions = []
+    ): bool
     {
         $condition = [];
         foreach ($conditions as $key => $value) {
