@@ -55,6 +55,32 @@ abstract class Model
         return $models;
     }
 
+    /**
+     * Setting the attributes of the model object based on the given data.
+     * @param array<string,mixed> $data The associative array containing the attribute data.
+     * @return void
+     */
+    protected function setAttributes(array $data): void
+    {
+        foreach ($data as $key => $value) {
+            if (is_int($value)) {
+                $this->$key = (int)$value;
+            } elseif (is_float($value)) {
+                $this->$key = (float)$value;
+            } elseif (is_string($value)) {
+                $this->$key = (string)$value;
+            } elseif (is_bool($value)) {
+                $this->$key = (bool)$value;
+            } elseif (is_null($value)) {
+                $this->$key = null;
+            } elseif (is_resource($value)) {
+                $this->$key = $value;
+            } else {
+                throw new UnexpectedValueException("The value is of an unsupported type.");
+            }
+        }
+    }
+
     public function find(mixed $identifier): ?self
     {
         $table_name =::getTableName();
@@ -69,13 +95,6 @@ abstract class Model
         $model = new($this->getDatabaseHandler());
         $model->setAttributes($response[0]);
         return $model;
-    }
-
-    protected function setAttributes(array $data): void
-    {
-        foreach ($data as $key => $value) {
-            $this->attributes[$key] = $value;
-        }
     }
 
     abstract public function findAll(): array;
