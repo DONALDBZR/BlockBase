@@ -9,7 +9,6 @@ use InvalidArgumentException;
  * @package App\Models
  * @property ?Database_Handler $database_handler The database handler to use for queries.
  * @property array<string,mixed> $dirty_attributes The attributes that have been changed.
- * @method static void put(int $id, array<string,mixed> $data) Updating an existing record in the database table.
  * @method static void setCondition(string $table_name, array $conditions, array &$parameters, string &$query) Adding a WHERE clause to the query based on the given conditions.
  * @method static void setGrouping(array $groupings, string &$query) Adding a GROUP BY clause to the query based on the given groupings.
  * @method static void setOrdering(array $orderings, string &$query) Adding an ORDER BY clause to the query based on the given orderings.
@@ -23,6 +22,7 @@ use InvalidArgumentException;
  * @method array<string,mixed> getDirtyAttributes() Getting the dirty attributes.
  * @method void clearDirtyAttributes() Clearing the dirty attributes.
  * @method static bool post(string $table_name, array $data) Posting data to the database table.
+ * @method static bool put(string $table_name, array $data, array $conditions) Updating data in the database table.
  */
 class Model
 {
@@ -80,13 +80,36 @@ class Model
     }
 
     /**
-     * Updating an existing record in the database table.
-     * @param int $id The ID of the record to update.
+     * Updating data in the database table.
+     * @param string $table_name The name of the table to update the data in.
      * @param array<string,mixed> $data The data to update in the database table.
-     * @return void
+     * @param array<int,array{key:string,value:mixed,is_general_search:bool,operator:string,is_bitwise:bool,bit_wise:string}> $conditions The conditions to apply to the update query.
+     * @return bool True if the data was updated successfully, false otherwise.
      */
-    public static function put(int $id, array $data): void
-    {}
+    public static function put(
+        string $table_name,
+        array $data,
+        array $conditions
+    ): bool
+    {
+        $query = "UPDATE {$table_name}";
+        $parameters = [];
+        $sets = [];
+        foreach ($data as $key => $value) {
+            $name = ":{$table_name}_{$key}";
+            $parameters[$name] = $value;
+            $sets[] = "{$key} = {$name}";
+        }
+        $set = implode(", ", $sets);
+        $query .= " SET {$set}";
+        self::setCondition(
+            $table_name,
+            $conditions,
+            $parameters,
+            $query
+        );
+        return self::getDatabaseHandler()->put($query, $parameters);
+    }
 
     /**
      * Adding a WHERE clause to the query based on the given conditions.
