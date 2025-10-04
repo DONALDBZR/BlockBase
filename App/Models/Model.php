@@ -2,6 +2,7 @@
 namespace App\Models;
 
 use App\Core\Database_Handler;
+use InvalidArgumentException;
 
 /**
  * It provides a base for all models in the application.  It includes methods for retrieving data from the database, as well as for creating, updating, and deleting data.
@@ -77,26 +78,72 @@ class Model
     {}
 
     /**
+     * Converting a database row into a model object.
+     * @param array<string,mixed> $row The database row to convert into a model object.
+     * @return self The model object created from the database row.
+     * @throws InvalidArgumentException If the given data type is not supported.
+     */
+    private static function getModel(array $row): self
+    {
+        $response = new static(self::getDatabaseHandler());
+        foreach ($row as $field => $data) {
+            if (is_int($data)) {
+                $response->$field = intval($data);
+                continue;
+            }
+            if (is_float($data)) {
+                $response->$field = floatval($data);
+                continue;
+            }
+            if (is_string($data)) {
+                $response->$field = strval($data);
+                continue;
+            }
+            if (is_bool($data)) {
+                $response->$field = boolval($data);
+                continue;
+            }
+            if (is_null($data)) {
+                $response->$field = null;
+                continue;
+            }
+            if (is_resource($data)) {
+                $response->$field = $data;
+                continue;
+            }
+            throw new InvalidArgumentException("This data type is not allowed in this database. - Field: {$field} - Data: {$data}", 503);
+        }
+        return $response;
+    }
+
+    /**
      * Retrieving all records from the database table.
      * @return array<int,self> The records retrieved from the database table.
      */
     public static function all(string $table_name): array
     {
-        $database_handler = self::getDatabaseHandler();
-        $query = "SELECT * FROM {$table_name}";
-        $database_response = self::getDatabaseHandler()->get($query);
-        if (empty($database_response)) {
+        try {
+            $query = "SELECT * FROM {$table_name}";
+            $database_response = self::getDatabaseHandler()->get($query);
+            if (empty($database_response)) {
+                return [];
+            }
+            $response = [];
+            foreach ($database_response as $row) {
+                $response[] = self::getModel($row);
+            }
+            return $response;
+        } catch (InvalidArgumentException $error) {
+            $data = [
+                "Error" => $error->getMessage(),
+                "File" => $error->getFile(),
+                "Line" => $error->getLine(),
+                "Table Name" => $table_name
+            ];
+            $message = "The data cannot be retrieved.";
+            self::getDatabaseHandler()->getLogger()::log($message, self::getDatabaseHandler()->getLogger()::ERROR, $data);
             return [];
         }
-        $response = [];
-        foreach ($database_response as $row) {
-            $record = new static(self::getDatabaseHandler());
-            foreach ($row as $attribute => $value) {
-                $record->$attribute = $value;
-            }
-            $response[] = $record;
-        }
-        return $response;
     }
 
     /**
