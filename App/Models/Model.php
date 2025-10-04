@@ -7,11 +7,15 @@ use App\Core\Database_Handler;
  * It provides a base for all models in the application.  It includes methods for retrieving data from the database, as well as for creating, updating, and deleting data.
  * @package App\Models
  * @property ?Database_Handler $database_handler The database handler to use for queries.
+ * @property array<string,mixed> $dirty_attributes The attributes that have been changed.
+ * @method static int post(array<string,mixed> $data) Creating a new record in the database table.
+ * @method static void put(int $id, array<string,mixed> $data) Updating an existing record in the database table.
+ * @method static ?self get(int $id) Retrieving a single record from the database table based on the given ID.
  * @method static array<int,self> all() Retrieving all records from the database table.
- * @method static ?self find(int $id) Retrieving a single record from the database table based on the given ID.
- * @method static int create(array $data) Creating a new record in the database table.
- * @method static void update(int $id, array $data) Updating an existing record in the database table.
  * @method static void delete(int $id) Deleting a record from the database table.
+ * @method void markDirty(string $attribute) Marking an attribute as dirty.
+ * @method array<string,mixed> getDirtyAttributes() Getting the dirty attributes.
+ * @method void clearDirtyAttributes() Clearing the dirty attributes.
  */
 abstract class Model
 {
@@ -21,6 +25,12 @@ abstract class Model
      * @var ?Database_Handler
      */
     private static ?Database_Handler $database_handler;
+    /**
+     * Tracking changes to the model.
+     *
+     * @var array<string,mixed> $dirty_attributes The attributes that have been changed.
+     */
+    private array $dirty_attributes = [];
 
     /**
      * Constructor for the model.
@@ -73,16 +83,37 @@ abstract class Model
     abstract public static function all(): array;
 
     /**
-     * Retrieving a single record from the database table based on the given ID.
-     * @param int $id The ID of the record to retrieve.
-     * @return ?self The record retrieved from the database table.
-     */
-    abstract public static function find(int $id): ?self;
-
-    /**
      * Deleting a record from the database table.
      * @param int $id The ID of the record to delete.
      * @return void
      */
     abstract public static function delete(int $id): void;
+
+    /**
+     * Marking an attribute as dirty.
+     * @param string $attribute The attribute to mark as dirty.
+     * @return void
+     */
+    public function markDirty(string $attribute): void
+    {
+        $this->dirty_attributes[$attribute] = true;
+    }
+
+    /**
+     * Getting the dirty attributes.
+     * @return array<string,mixed> The dirty attributes.
+     */
+    public function getDirtyAttributes(): array
+    {
+        return $this->dirty_attributes;
+    }
+
+    /**
+     * Clearing the dirty attributes.
+     * @return void
+     */
+    public function clearDirtyAttributes(): void
+    {
+        $this->dirty_attributes = [];
+    }
 }
