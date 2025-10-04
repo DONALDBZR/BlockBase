@@ -100,21 +100,40 @@ class Model
         $query .= $where;
     }
 
+    /**
+     * Adding a GROUP BY clause to the query based on the given groupings.
+     * @param array $groupings The fields to group the records by.
+     * @param string &$query The query to add the GROUP BY clause to.
+     * @return void
+     */
+    private static function setGrouping(array $groupings, string &$query): void
+    {
+        if (empty($groupings)) {
+            return;
+        }
+        $group = " GROUP BY";
+        $specification = implode(", ", $groupings);
+        $group .= " {$specification}";
+        $query .= $group;
+    }
+
     public static function get(
-        string $table_name,
+        string $dataset,
         array $fields = [],
         array $conditions = [],
+        array $grouping = []
     ): ?self
     {
         $column = (empty($fields)) ? "*" : implode(", ", $fields);
-        $query = "SELECT {$column} FROM {$table_name}";
+        $query = "SELECT {$column} FROM {$dataset}";
         $parameters = [];
         self::setCondition(
-            $table_name,
+            $dataset,
             $conditions,
             $parameters,
             $query
         );
+        self::setGrouping($grouping, $query);
     }
 
     /**
