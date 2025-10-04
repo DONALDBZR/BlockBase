@@ -9,7 +9,6 @@ use InvalidArgumentException;
  * @package App\Models
  * @property ?Database_Handler $database_handler The database handler to use for queries.
  * @property array<string,mixed> $dirty_attributes The attributes that have been changed.
- * @method static int post(array<string,mixed> $data) Creating a new record in the database table.
  * @method static void put(int $id, array<string,mixed> $data) Updating an existing record in the database table.
  * @method static void setCondition(string $table_name, array $conditions, array &$parameters, string &$query) Adding a WHERE clause to the query based on the given conditions.
  * @method static void setGrouping(array $groupings, string &$query) Adding a GROUP BY clause to the query based on the given groupings.
@@ -23,6 +22,7 @@ use InvalidArgumentException;
  * @method void markDirty(string $attribute) Marking an attribute as dirty.
  * @method array<string,mixed> getDirtyAttributes() Getting the dirty attributes.
  * @method void clearDirtyAttributes() Clearing the dirty attributes.
+ * @method static bool post(string $table_name, array $data) Posting data to the database table.
  */
 class Model
 {
@@ -59,12 +59,25 @@ class Model
     }
 
     /**
-     * Creating a new record in the database table.
-     * @param array<string,mixed> $data The data to insert into the database table.
-     * @return int The ID of the newly created record.
+     * Posting data to the database table.
+     * @param string $table_name The name of the table to post the data to.
+     * @param array<string,mixed> $data The data to post to the database table.
+     * @return bool True if the data was posted successfully, false otherwise.
      */
-    public static function post(array $data): int
-    {}
+    public static function post(string $table_name, array $data): bool
+    {
+        $column = implode(", ", array_keys($data));
+        $values = [];
+        $parameters = [];
+        foreach ($data as $key => $value) {
+            $name = ":{$table_name}_{$key}";
+            $values[] = $name;
+            $parameters[$name] = $value;
+        }
+        $value = implode(", ", $values);
+        $query = "INSERT INTO {$table_name} ({$column}) VALUES ({$value})";
+        return self::getDatabaseHandler()->post($query, $parameters);
+    }
 
     /**
      * Updating an existing record in the database table.
