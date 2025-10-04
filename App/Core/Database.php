@@ -48,12 +48,12 @@ class Database_Handler {
         $this->connection = $connection;
     }
 
-    private function getLogger(): Logger
+    public function getLogger(): Logger
     {
         return $this->logger;
     }
 
-    private function setLogger(Logger $logger): void
+    public function setLogger(Logger $logger): void
     {
         $this->logger = $logger;
     }

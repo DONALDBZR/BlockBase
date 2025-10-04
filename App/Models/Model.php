@@ -78,8 +78,49 @@ class Model
     {}
 
     /**
+     * Setting the value of a field in the model object.  It supports several data types: int, float, string, bool, null, resource.
+     * @param string $field The field to set.
+     * @param mixed $data The data to set in the field.
+     * @throws InvalidArgumentException If the given data type is not supported.
+     */
+    private function setFields(string $field, mixed $data): void
+    {
+        if (is_int($data)) {
+            $this->$field = intval($data);
+            return;
+        }
+        if (is_float($data)) {
+            $this->$field = floatval($data);
+            return;
+        }
+        if (is_string($data)) {
+            $this->$field = strval($data);
+            return;
+        }
+        if (is_bool($data)) {
+            $this->$field = boolval($data);
+            return;
+        }
+        if (is_null($data)) {
+            $this->$field = null;
+            return;
+        }
+        if (is_resource($data)) {
+            $this->$field = $data;
+            return;
+        }
+        $log_data = [
+            "Field" => $field,
+            "Data Type" => gettype($data)
+        ];
+        $message = "This data type is not allowed in this database.";
+        self::getDatabaseHandler()->getLogger()::log($message, self::getDatabaseHandler()->getLogger()::ERROR, $log_data);
+        throw new InvalidArgumentException($message, 503);
+    }
+
+    /**
      * Converting a database row into a model object.
-     * @param array<string,mixed> $row The database row to convert into a model object.
+     * @param array<string,int|float|string|bool|null|resource|array|object> $row The database row to convert into a model object.
      * @return self The model object created from the database row.
      * @throws InvalidArgumentException If the given data type is not supported.
      */
@@ -87,31 +128,7 @@ class Model
     {
         $response = new static(self::getDatabaseHandler());
         foreach ($row as $field => $data) {
-            if (is_int($data)) {
-                $response->$field = intval($data);
-                continue;
-            }
-            if (is_float($data)) {
-                $response->$field = floatval($data);
-                continue;
-            }
-            if (is_string($data)) {
-                $response->$field = strval($data);
-                continue;
-            }
-            if (is_bool($data)) {
-                $response->$field = boolval($data);
-                continue;
-            }
-            if (is_null($data)) {
-                $response->$field = null;
-                continue;
-            }
-            if (is_resource($data)) {
-                $response->$field = $data;
-                continue;
-            }
-            throw new InvalidArgumentException("This data type is not allowed in this database. - Field: {$field} - Data: {$data}", 503);
+            $response->setFields($field, $data);
         }
         return $response;
     }
