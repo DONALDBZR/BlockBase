@@ -11,8 +11,9 @@ use InvalidArgumentException;
  * @property array<string,mixed> $dirty_attributes The attributes that have been changed.
  * @method static int post(array<string,mixed> $data) Creating a new record in the database table.
  * @method static void put(int $id, array<string,mixed> $data) Updating an existing record in the database table.
- * @method static ?self get(int $id) Retrieving a single record from the database table based on the given ID.
- * @method static array<int,self> all() Retrieving all records from the database table.
+ * @method void setFields(string $field, mixed $data) Setting the value of a field in the model object.
+ * @method static self getModel(array<string,mixed> $row) Converting a database row to a model object.
+ * @method static array<int,self> all(string $table_name) Retrieving all records from the database table.
  * @method static void delete(int $id) Deleting a record from the database table.
  * @method void markDirty(string $attribute) Marking an attribute as dirty.
  * @method array<string,mixed> getDirtyAttributes() Getting the dirty attributes.
@@ -70,12 +71,51 @@ class Model
     {}
 
     /**
-     * Retrieving a single record from the database table based on the given ID.
-     * @param int $id The ID of the record to retrieve.
-     * @return ?self The record retrieved from the database table, or null if not found.
+     * Adding a WHERE clause to the query based on the given conditions.
+     * @param string $table_name The name of the table to query.
+     * @param array $conditions The conditions to filter the records by.
+     * @param array &$parameters The parameters to bind to the query.
+     * @param string &$query The query to add the WHERE clause to.
+     * @return void
      */
-    public static function get(int $id): ?self
-    {}
+    private static function setCondition(
+        string $table_name,
+        array $conditions,
+        array &$parameters,
+        string &$query
+    ): void
+    {
+        if (empty($conditions)) {
+            return;
+        }
+        $where = " WHERE";
+        foreach ($conditions as $condition) {
+            $name = ":{$table_name}_{$condition['key']}";
+            $parameters[$name] = $condition['value'];
+            $operator = ($condition['is_general_search']) ? "LIKE" : $condition['operator'];
+            $value = ($condition['is_general_search']) ? "%{$condition['value']}%" : $name;
+            $where .= " {$condition['key']} {$operator} {$value}";
+            $where .= ($condition['is_bitwise']) ? " {$condition['bit_wise']}" : "";
+        }
+        $query .= $where;
+    }
+
+    public static function get(
+        string $table_name,
+        array $fields = [],
+        array $conditions = [],
+    ): ?self
+    {
+        $column = (empty($fields)) ? "*" : implode(", ", $fields);
+        $query = "SELECT {$column} FROM {$table_name}";
+        $parameters = [];
+        self::setCondition(
+            $table_name,
+            $conditions,
+            $parameters,
+            $query
+        );
+    }
 
     /**
      * Setting the value of a field in the model object.  It supports several data types: int, float, string, bool, null, resource.
