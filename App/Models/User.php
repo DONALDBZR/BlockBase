@@ -18,6 +18,7 @@ use App\Models\Model;
  * @property string $table_name The name of the table in the database that the user is stored in.
  * @method bool create(array $properties) Creating a new user with the given properties.
  * @method bool update(array $data, array $condition) Updating an existing user record in the database table.
+ * @method array<int,self> find(array $conditions) Retrieving a list of user records from the database table based on the conditions.
  */
 class User extends Model
 {
@@ -122,5 +123,24 @@ class User extends Model
             $data[$key] = $value;
         }
         return $user::put($this->getTableName(), $data, $condition);
+    }
+
+    /**
+     * Retrieving a list of user records from the database table based on the conditions.
+     * @param array<int,array{key:string,value:mixed,is_general_search:bool,operator:string,is_bitwise:bool,bit_wise:string}> $conditions The conditions to apply to the query.
+     * @return array<int,self> A list of User or an empty array if no record is found.
+     */
+    public function find(array $conditions): array
+    {
+        return self::get(
+            true,
+            $this->getTableName(),
+            "",
+            [],
+            $conditions,
+            [],
+            [],
+            []
+        );
     }
 }
