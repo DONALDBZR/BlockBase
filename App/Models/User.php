@@ -5,6 +5,19 @@ use App\Core\Database_Handler;
 use App\Models\Model;
 
 
+/**
+ * It is an extension of the `Model` class, which is a base class for all models in the application.  it represents a user in the application.
+ * @property int $id The ID of the user.
+ * @property string $username The username of the user.
+ * @property string $email The email address of the user.
+ * @property string $password_hash The hashed password of the user.
+ * @property int $role The role of the user which is also the ID of the role.
+ * @property int $status The status of the user which is also the ID of the status.
+ * @property int $created_at The timestamp of when the user was created.
+ * @property int $updated_at The timestamp of when the user was last updated.
+ * @property string $table_name The name of the table in the database that the user is stored in.
+ * @method bool create(array $properties) Creating a new user with the given properties.
+ */
 class User extends Model
 {
     public int $id;
@@ -44,8 +57,23 @@ class User extends Model
         $this->table_name = $table_name;
     }
 
-    public function create(array $data): int
+    /**
+     * Creating a new user with the given properties.
+     * @param array{string,mixed} $properties The properties to set in the new user object.
+     * @return bool True if the user was successfully created, false otherwise.
+     */
+    public function create(array $properties): bool
     {
-        return parent::post($this->getTableName(), $data);
+        $excluded_fields = ["table_name"];
+        $user = new static(self::getDatabaseHandler(), $properties);
+        $data = [];
+        foreach ($user as $key => $value) {
+            $is_allowed = !in_array($key, $excluded_fields);
+            if (!$is_allowed) {
+                continue;
+            }
+            $data[$key] = $value;
+        }
+        return $user::post($this->getTableName(), $data);
     }
 }
