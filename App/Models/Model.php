@@ -117,11 +117,33 @@ class Model
         $query .= $group;
     }
 
+    /**
+     * Adding an ORDER BY clause to the query based on the given orderings.
+     * @param array $orderings The fields to order the records by and the direction of the ordering. The direction should be either "ASC" or "DESC".
+     * @param string &$query The query to add the ORDER BY clause to.
+     * @return void
+     */
+    private static function setOrdering(array $orderings, string &$query): void
+    {
+        if (empty($orderings)) {
+            return;
+        }
+        $orders = [];
+        foreach ($orderings as $ordering) {
+            $orders[] = "{$ordering['field']} {$ordering['direction']}";
+        }
+        $specification = implode(", ", $orders);
+        $order = " ORDER BY {$specification}";
+        $query .= $order;
+    }
+
     public static function get(
         string $dataset,
         array $fields = [],
         array $conditions = [],
-        array $grouping = []
+        array $grouping = [],
+        array $ordering = [],
+        array $limitation = []
     ): ?self
     {
         $column = (empty($fields)) ? "*" : implode(", ", $fields);
@@ -134,6 +156,7 @@ class Model
             $query
         );
         self::setGrouping($grouping, $query);
+        self::setOrdering($ordering, $query);
     }
 
     /**
