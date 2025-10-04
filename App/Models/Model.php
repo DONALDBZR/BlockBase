@@ -3,7 +3,6 @@ namespace App\Models;
 
 use App\Core\Database_Handler;
 
-
 /**
  * It provides a base for all models in the application.  It includes methods for retrieving data from the database, as well as for creating, updating, and deleting data.
  * @package App\Models
@@ -46,6 +45,28 @@ abstract class Model
     }
 
     /**
+     * Creating a new record in the database table.
+     * @param array<string,mixed> $data The data to insert into the database table.
+     * @return int The ID of the newly created record.
+     */
+    abstract public static function post(array $data): int;
+
+    /**
+     * Updating an existing record in the database table.
+     * @param int $id The ID of the record to update.
+     * @param array<string,mixed> $data The data to update in the database table.
+     * @return void
+     */
+    abstract public static function put(int $id, array $data): void;
+
+    /**
+     * Retrieving a single record from the database table based on the given ID.
+     * @param int $id The ID of the record to retrieve.
+     * @return ?self The record retrieved from the database table, or null if not found.
+     */
+    abstract public static function get(int $id): ?self;
+
+    /**
      * Retrieving all records from the database table.
      * @return array<int,self> The records retrieved from the database table.
      */
@@ -57,21 +78,6 @@ abstract class Model
      * @return ?self The record retrieved from the database table.
      */
     abstract public static function find(int $id): ?self;
-
-    /**
-     * Creating a new record in the database table.
-     * @param array $data The data to insert into the database table.
-     * @return int The ID of the newly created record.
-     */
-    abstract public static function create(array $data): int;
-
-    /**
-     * Updating an existing record in the database table.
-     * @param int $id The ID of the record to update.
-     * @param array $data The data to update in the database table.
-     * @return void
-     */
-    abstract public static function update(int $id, array $data): void;
 
     /**
      * Deleting a record from the database table.
