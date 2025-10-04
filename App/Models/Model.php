@@ -11,6 +11,11 @@ use InvalidArgumentException;
  * @property array<string,mixed> $dirty_attributes The attributes that have been changed.
  * @method static int post(array<string,mixed> $data) Creating a new record in the database table.
  * @method static void put(int $id, array<string,mixed> $data) Updating an existing record in the database table.
+ * @method static void setCondition(string $table_name, array $conditions, array &$parameters, string &$query) Adding a WHERE clause to the query based on the given conditions.
+ * @method static void setGrouping(array $groupings, string &$query) Adding a GROUP BY clause to the query based on the given groupings.
+ * @method static void setOrdering(array $orderings, string &$query) Adding an ORDER BY clause to the query based on the given orderings.
+ * @method static void setLimitation(array $limitations, string &$query) Adding a LIMIT clause to the query based on the given limitations.
+ * @method static array get(bool $is_single_entity, string $dataset, string $table_name, array $fields, array $conditions, array $groupings, array $ordering, array $limitation) Retrieving records from the database.
  * @method void setFields(string $field, mixed $data) Setting the value of a field in the model object.
  * @method static self getModel(array<string,mixed> $row) Converting a database row to a model object.
  * @method static array<int,self> all(string $table_name) Retrieving all records from the database table.
@@ -153,26 +158,64 @@ class Model
         $query .= " LIMIT {$limitations['limit']} OFFSET {$limitations['offset']}";
     }
 
+    /**
+     * Retrieving records from the database.
+     * @param bool $is_single_entity Whether to return a single entity or multiple records.
+     * @param string $dataset The dataset to retrieve the records from.
+     * @param string $table_name The name of the table to retrieve the records from. If not provided, the dataset name will be used.
+     * @param array<string> $fields The fields to retrieve from the database. If empty, all fields will be retrieved.
+     * @param array<int,array{key:string,value:mixed,is_general_search:bool,operator:string,is_bitwise:bool,bit_wise:string}> $conditions The conditions to apply to the query.
+     * @param array<int,string> $grouping The grouping conditions to apply to the query.
+     * @param array<int,array{field:string,direction:string}> $ordering The fields to order the records by and the direction of the ordering.
+     * @param array{limit:int,offset:int} $limitation The limitations to apply to the query.
+     * @return array<int,self> The retrieved records. If no records were found, an empty array will be returned.
+     * @throws InvalidArgumentException If any of the provided parameters are invalid.
+     */
     public static function get(
+        bool $is_single_entity,
         string $dataset,
+        string $table_name = "",
         array $fields = [],
         array $conditions = [],
         array $grouping = [],
         array $ordering = [],
         array $limitation = []
-    ): ?self
+    ): array
     {
-        $column = (empty($fields)) ? "*" : implode(", ", $fields);
-        $query = "SELECT {$column} FROM {$dataset}";
-        $parameters = [];
-        self::setCondition(
-            $dataset,
-            $conditions,
-            $parameters,
-            $query
-        );
-        self::setGrouping($grouping, $query);
-        self::setOrdering($ordering, $query);
+        try {
+            $column = (empty($fields)) ? "*" : implode(", ", $fields);
+            $table_name = ($is_single_entity) ? $dataset : $table_name;
+            $query = "SELECT {$column} FROM {$dataset}";
+            $parameters = [];
+            self::setCondition(
+                $table_name,
+                $conditions,
+                $parameters,
+                $query
+            );
+            self::setGrouping($grouping, $query);
+            self::setOrdering($ordering, $query);
+            self::setLimitation($limitation, $query);
+            $database_response = self::getDatabaseHandler()->get($query, $parameters);
+            if (empty($database_response)) {
+                return [];
+            }
+            $response = [];
+            foreach ($database_response as $row) {
+                $response[] = self::getModel($row);
+            }
+            return $response;
+        } catch (InvalidArgumentException $error) {
+            $data = [
+                "Error" => $error->getMessage(),
+                "File" => $error->getFile(),
+                "Line" => $error->getLine(),
+                "Dataset" => $dataset
+            ];
+            $message = "The data cannot be retrieved.";
+            self::getDatabaseHandler()->getLogger()::log($message, self::getDatabaseHandler()->getLogger()::ERROR, $data);
+            return [];
+        }
     }
 
     /**
