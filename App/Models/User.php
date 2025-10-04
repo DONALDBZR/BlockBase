@@ -17,6 +17,7 @@ use App\Models\Model;
  * @property int $updated_at The timestamp of when the user was last updated.
  * @property string $table_name The name of the table in the database that the user is stored in.
  * @method bool create(array $properties) Creating a new user with the given properties.
+ * @method bool update(array $data, array $condition) Updating an existing user record in the database table.
  */
 class User extends Model
 {
@@ -75,5 +76,51 @@ class User extends Model
             $data[$key] = $value;
         }
         return $user::post($this->getTableName(), $data);
+    }
+
+    /**
+     * Updating an existing user record in the database table.
+     * @param array<string,mixed> $data The data to update in the database table.
+     * @param array<int,array{key:string,value:mixed,is_general_search:bool,operator:string,is_bitwise:bool,bit_wise:string}> $condition The conditions to apply to the update query.
+     * @return bool True if the data was updated successfully, false otherwise.
+     */
+    public function update(array $data, array $condition): bool
+    {
+        $logger = self::getDatabaseHandler()->getLogger();
+        $users = self::get(
+            true,
+            $this->getTableName(),
+            "",
+            [],
+            $condition,
+            [],
+            [],
+            []
+        );
+        $log_data = [
+            "Condition" => $condition,
+        ];
+        if (empty($users)) {
+            $logger::log("There is no user to update.", $logger::ERROR, $log_data);
+            return false;
+        }
+        if (count($users) > 1) {
+            $logger::log("There is more than one user to update.", $logger::ERROR, $log_data);
+            return false;
+        }
+        $user = $users[0];
+        foreach ($data as $key => $value) {
+            $user->setFields($key, $value);
+        }
+        $excluded_fields = ["table_name"];
+        $data = [];
+        foreach ($user as $key => $value) {
+            $is_allowed = !in_array($key, $excluded_fields);
+            if (!$is_allowed) {
+                continue;
+            }
+            $data[$key] = $value;
+        }
+        return $user::put($this->getTableName(), $data, $condition);
     }
 }
