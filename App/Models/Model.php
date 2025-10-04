@@ -73,7 +73,7 @@ class Model
     /**
      * Adding a WHERE clause to the query based on the given conditions.
      * @param string $table_name The name of the table to query.
-     * @param array $conditions The conditions to filter the records by.
+     * @param array<int,array{key:string,value:mixed,is_general_search:bool,operator:string,is_bitwise:bool,bit_wise:string}> $conditions The conditions to filter the records by.
      * @param array &$parameters The parameters to bind to the query.
      * @param string &$query The query to add the WHERE clause to.
      * @return void
@@ -102,7 +102,7 @@ class Model
 
     /**
      * Adding a GROUP BY clause to the query based on the given groupings.
-     * @param array $groupings The fields to group the records by.
+     * @param array<int,string> $groupings The fields to group the records by.
      * @param string &$query The query to add the GROUP BY clause to.
      * @return void
      */
@@ -119,7 +119,7 @@ class Model
 
     /**
      * Adding an ORDER BY clause to the query based on the given orderings.
-     * @param array $orderings The fields to order the records by and the direction of the ordering. The direction should be either "ASC" or "DESC".
+     * @param array<int,array{field:string,direction:string}> $orderings The fields to order the records by and the direction of the ordering. The direction should be either "ASC" or "DESC".
      * @param string &$query The query to add the ORDER BY clause to.
      * @return void
      */
@@ -135,6 +135,22 @@ class Model
         $specification = implode(", ", $orders);
         $order = " ORDER BY {$specification}";
         $query .= $order;
+    }
+
+    /**
+     * Adding a LIMIT clause to the query based on the given limitations.
+     * @param array{limit:int,offset:int} $limitations The limitations to apply to the query. The array should contain the following keys:
+     * - limit: The maximum number of records to return.
+     * - offset: The number of records to skip before returning the result.
+     * @param string &$query The query to add the LIMIT clause to.
+     * @return void
+     */
+    private static function setLimitation(array $limitations, string &$query): void
+    {
+        if (empty($limitation)) {
+            return;
+        }
+        $query .= " LIMIT {$limitations['limit']} OFFSET {$limitations['offset']}";
     }
 
     public static function get(
