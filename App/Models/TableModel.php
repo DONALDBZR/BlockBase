@@ -17,24 +17,30 @@ use App\Core\Errors\NotFoundException;
  * @method bool deleteData(array $conditions, bool $is_multiple) Deleting records from the database table based on the conditions.
  * @method static bool enforce(bool $condition, string $message, mixed $error) Enforcing a condition and throwing an exception if it is not met.
  * @method array<string,mixed> getData(self $model) This method takes a model object and returns an array containing all the data in the object.
+ * @property array<int,array<string,array{is_required:bool,max_length:int,is_unique:bool}>> $validation_rules The validation rules to apply to the model object.
  */
 class Table_Model extends Model
 {
     private string $table_name;
+    private array $validation_rules;
 
     /**
-     * Initializing the model with the given database handler and properties.
-     * @param Database_Handler|null $database_handler The database handler to use for queries.
-     * @param array<string,mixed> $properties The properties to set in the model object.
+     * Initializing the model with the given database handler, table name, properties, and validation rules.
+     * @param ?Database_Handler $database_handler The database handler to use for queries.
+     * @param string $table_name The name of the table in the database that the record is stored in.
+     * @param array<string,mixed> $properties The properties to set in the model object. Defaults to an empty array.
+     * @param array<int,array<string,array{is_required:bool,max_length:int,is_unique:bool}>> $validation_rules The validation rules to apply to the model object. Defaults to an empty array.
      */
     public function __construct(
         ?Database_Handler $database_handler,
         string $table_name,
-        array $properties = []
+        array $properties = [],
+        array $validation_rules = []
     )
     {
         parent::__construct($database_handler);
         $this->setTableName($table_name);
+        $this->setValidationRules($validation_rules);
         foreach ($properties as $key => $value) {
             $this->setFields($key, $value);
         }
@@ -48,6 +54,16 @@ class Table_Model extends Model
     private function setTableName(string $table_name): void
     {
         $this->table_name = $table_name;
+    }
+
+    public function getValidationRules(): array
+    {
+        return $this->validation_rules;
+    }
+
+    public function setValidationRules(array $validation_rules): void
+    {
+        $this->validation_rules = $validation_rules;
     }
 
     /**
