@@ -1,0 +1,169 @@
+<?php
+namespace App\Models;
+
+use App\Core\Database_Handler;
+use App\Core\Errors\AtomicityException;
+use App\Models\Model;
+use App\Core\Errors\NotFoundException;
+
+
+/**
+ * It is an extension of the `Model` class, which is a base class for all models in the application.  it represents the main table model in the application.
+ * @property string $table_name The name of the table in the database that the record is stored in.
+ * @method bool create(array $properties) Creating a new record with the given properties.
+ * @method bool update(array $data, array $condition) Updating an existing record in the database table.
+ * @method array<int,self> find(array $conditions) Retrieving a list of records from the database table based on the conditions.
+ * @method array<int,self> getAll() Retrieving all records from the database table.
+ * @method bool deleteData(array $conditions, bool $is_multiple) Deleting records from the database table based on the conditions.
+ * @method static bool enforce(bool $condition, string $message, mixed $error) Enforcing a condition and throwing an exception if it is not met.
+ */
+class Table_Model extends Model
+{
+    private string $table_name;
+
+    /**
+     * Initializing the model with the given database handler and properties.
+     * @param Database_Handler|null $database_handler The database handler to use for queries.
+     * @param array<string,mixed> $properties The properties to set in the model object.
+     */
+    public function __construct(
+        ?Database_Handler $database_handler,
+        string $table_name,
+        array $properties = []
+    )
+    {
+        parent::__construct($database_handler);
+        $this->setTableName($table_name);
+        foreach ($properties as $key => $value) {
+            $this->setFields($key, $value);
+        }
+    }
+
+    private function getTableName(): string
+    {
+        return $this->table_name;
+    }
+
+    private function setTableName(string $table_name): void
+    {
+        $this->table_name = $table_name;
+    }
+
+    /**
+     * Creating a new with the given properties.
+     * @param array<string,mixed> $properties The properties to set in the new object.
+     * @return bool True if the was successfully created, false otherwise.
+     */
+    public function create(array $properties): bool
+    {
+        $excluded_fields = ["table_name"];
+        $model = new static(self::getDatabaseHandler(), $this->getTableName(), $properties);
+        $data = [];
+        foreach ($model as $key => $value) {
+            $is_allowed = !in_array($key, $excluded_fields);
+            if (!$is_allowed) {
+                continue;
+            }
+            $data[$key] = $value;
+        }
+        return $model::post($this->getTableName(), $data);
+    }
+
+    /**
+     * Updating an existing record in the database table.
+     * 
+     * This method does the following:
+     * 1. Finds a record based on the given condition.
+     * 2. If no record is found, throws a `NotFoundException`.
+     * 3. If more than one record is found, throws an `AtomicityException`.
+     * 4. Updates the record with the given data.
+     * @param array<string,mixed> $data The data to update in the database table.
+     * @param array<int,array{key:string,value:mixed,is_general_search:bool,operator:string,is_bitwise:bool,bit_wise:string}> $condition The conditions to apply to the update query.
+     * @return bool True if the data was updated successfully, false otherwise.
+     * @throws NotFoundException If no record is found to update.
+     * @throws AtomicityException If more than one record is found to update.
+     */
+    public function update(array $data, array $condition): bool
+    {
+        $models = $this->find($condition);
+        self::enforce(!empty($models), "There is no user to update.", NotFoundException::class);
+        self::enforce(count($models) === 1, "There is more than one user to update.", AtomicityException::class);
+        $model = $models[0];
+        foreach ($data as $key => $value) {
+            $model->setFields($key, $value);
+        }
+        $excluded_fields = ["table_name"];
+        $data = [];
+        foreach ($model as $key => $value) {
+            $is_allowed = !in_array($key, $excluded_fields);
+            if (!$is_allowed) {
+                continue;
+            }
+            $data[$key] = $value;
+        }
+        return $model::put($this->getTableName(), $data, $condition);
+    }
+
+    /**
+     * Retrieving a list of records from the database table based on the conditions.
+     * @param array<int,array{key:string,value:mixed,is_general_search:bool,operator:string,is_bitwise:bool,bit_wise:string}> $conditions The conditions to apply to the query.
+     * @return array<int,self> A list of Models or an empty array if no record is found.
+     */
+    public function find(array $conditions): array
+    {
+        return self::get(
+            true,
+            $this->getTableName(),
+            "",
+            [],
+            $conditions,
+            [],
+            [],
+            []
+        );
+    }
+
+    /**
+     * Retrieving all records from the database table.
+     * @return array<int,self> A list of Model objects or an empty array if no record is found.
+     */
+    public function getAll(): array
+    {
+        return self::all($this->getTableName());
+    }
+
+    /**
+     * Deleting records from the database table based on the conditions.
+     * @param array<int,array{key:string,value:mixed,is_general_search:bool,operator:string,is_bitwise:bool,bit_wise:string}> $conditions The conditions to apply to the query.
+     * @param bool $is_multiple Whether to allow multiple records to be deleted or not.
+     * @return bool True if the data was deleted successfully, false otherwise.
+     * @throws NotFoundException If there is no record to delete.
+     * @throws AtomicityException If there is more than one record to delete.
+     */
+    public function deleteData(
+        array $conditions,
+        $is_multiple = false
+    ): bool
+    {
+        $models = $this->find($conditions);
+        self::enforce(!empty($models), "There is no user to delete.", NotFoundException::class);
+        self::enforce(((count($models) === 1) && !$is_multiple), "There is more than one user to delete.", AtomicityException::class);
+        $model = $models[0];
+        return $model::delete($this->getTableName(), $conditions);
+    }
+
+    /**
+     * Enforcing a condition and throwing an exception if it is not met.
+     * @param bool $condition The condition to enforce.
+     * @param string $message The message to include in the exception.
+     * @param NotFoundException|AtomicityException $error The exception to throw if the condition is not met.
+     * @throws NotFoundException|AtomicityException If the condition is not met.
+     */
+    private static function enforce(bool $condition, string $message, mixed $error): void
+    {
+        if ($condition) {
+            return;
+        }
+        throw new $error($message);
+    }
+}
