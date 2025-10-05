@@ -22,7 +22,7 @@ use InvalidArgumentException;
  * @method void clearDirtyAttributes() Clearing the dirty attributes.
  * @method static bool post(string $table_name, array $data) Posting data to the database table.
  * @method static bool put(string $table_name, array $data, array $conditions) Updating data in the database table.
- * @method statuc bool delete(string $table_name, array $conditions) Deleting data from the database table.
+ * @method static bool delete(string $table_name, array $conditions) Deleting data from the database table.
  */
 class Model
 {
