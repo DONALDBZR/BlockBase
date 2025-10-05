@@ -5,7 +5,7 @@ use App\Core\Database_Handler;
 use App\Core\Errors\AtomicityException;
 use App\Models\Model;
 use App\Core\Errors\NotFoundException;
-
+use InvalidArgumentException;
 
 /**
  * It is an extension of the `Model` class, which is a base class for all models in the application.  it represents the main table model in the application.
@@ -17,7 +17,8 @@ use App\Core\Errors\NotFoundException;
  * @method bool deleteData(array $conditions, bool $is_multiple) Deleting records from the database table based on the conditions.
  * @method static bool enforce(bool $condition, string $message, mixed $error) Enforcing a condition and throwing an exception if it is not met.
  * @method array<string,mixed> getData(self $model) This method takes a model object and returns an array containing all the data in the object.
- * @property array<int,array<string,array{is_required:bool,max_length:int,is_unique:bool}>> $validation_rules The validation rules to apply to the model object.
+ * @property array<string,array{is_required:bool,max_length:int,is_unique:bool}> $validation_rules The validation rules to apply to the model object.
+ * @method bool isUnique(string $field, mixed $value) Checking if a given field with a given value is unique in the database table.
  */
 class Table_Model extends Model
 {
@@ -29,7 +30,7 @@ class Table_Model extends Model
      * @param ?Database_Handler $database_handler The database handler to use for queries.
      * @param string $table_name The name of the table in the database that the record is stored in.
      * @param array<string,mixed> $properties The properties to set in the model object. Defaults to an empty array.
-     * @param array<int,array<string,array{is_required:bool,max_length:int,is_unique:bool}>> $validation_rules The validation rules to apply to the model object. Defaults to an empty array.
+     * @param array<string,array{is_required:bool,max_length:int,is_unique:bool}> $validation_rules The validation rules to apply to the model object. Defaults to an empty array.
      */
     public function __construct(
         ?Database_Handler $database_handler,
@@ -56,6 +57,7 @@ class Table_Model extends Model
         $this->table_name = $table_name;
     }
 
+    /** @return array<string,array{is_required:bool,max_length:int,is_unique:bool}> */
     public function getValidationRules(): array
     {
         return $this->validation_rules;
@@ -185,5 +187,38 @@ class Table_Model extends Model
             return;
         }
         throw new $error($message);
+    }
+
+    private function validate(array $data): void
+    {
+        foreach ($this->getValidationRules() as $field => $rules) {
+            $value = $data[$field] ?? null;
+            self::enforce((!$rules["is_required"] && !empty($value)), "The field is required.", InvalidArgumentException::class);
+            self::enforce((!isset($rules["max_length"]) && !is_string($value) && (strlen($value) <= $rules["max_length"])), "The field is too long.", InvalidArgumentException::class);
+            self::enforce((!$rules["is_unique"] && !$this->isUnique($field, $value)), "The field must be unique.", InvalidArgumentException::class);
+        }
+    }
+
+    /**
+     * Checking if a given field with a given value is unique in the database table.
+     * @param string $field The name of the field to check.
+     * @param mixed $value The value to check for in the field.
+     * @return bool True if the given field with the given value is unique, false otherwise.
+     */
+    private function isUnique(string $field, mixed $value): bool
+    {
+        $response = $this->find(
+            [
+                [
+                    "key" => $field,
+                    "value" => $value,
+                    "is_general_search" => false,
+                    "operator" => "=",
+                    "is_bitwise" => false,
+                    "bit_wise" => ""
+                ]
+            ]
+        );
+        return empty($response);
     }
 }
