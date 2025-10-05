@@ -19,6 +19,7 @@ use App\Models\Model;
  * @method bool create(array $properties) Creating a new user with the given properties.
  * @method bool update(array $data, array $condition) Updating an existing user record in the database table.
  * @method array<int,self> find(array $conditions) Retrieving a list of user records from the database table based on the conditions.
+ * @method array<int,self> getAll() Retrieving all user records from the database table.
  */
 class User extends Model
 {
@@ -88,16 +89,7 @@ class User extends Model
     public function update(array $data, array $condition): bool
     {
         $logger = self::getDatabaseHandler()->getLogger();
-        $users = self::get(
-            true,
-            $this->getTableName(),
-            "",
-            [],
-            $condition,
-            [],
-            [],
-            []
-        );
+        $users = $this->find($condition);
         $log_data = [
             "Condition" => $condition,
         ];
@@ -142,5 +134,14 @@ class User extends Model
             [],
             []
         );
+    }
+
+    /**
+     * Retrieving all user records from the database table.
+     * @return array<int,self> A list of User objects or an empty array if no record is found.
+     */
+    public function getAll(): array
+    {
+        return self::all($this->getTableName());
     }
 }
