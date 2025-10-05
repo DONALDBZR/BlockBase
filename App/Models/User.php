@@ -2,7 +2,9 @@
 namespace App\Models;
 
 use App\Core\Database_Handler;
+use App\Core\Errors\AtomicityException;
 use App\Models\Model;
+use App\Core\Errors\NotFoundException;
 
 
 /**
@@ -82,24 +84,26 @@ class User extends Model
 
     /**
      * Updating an existing user record in the database table.
+     *
+     * This method does the following:
+     * 1. Finds a user record based on the given condition.
+     * 2. If no record is found, throws a `NotFoundException`.
+     * 3. If more than one record is found, throws an `AtomicityException`.
+     * 4. Updates the user record with the given data.
      * @param array<string,mixed> $data The data to update in the database table.
      * @param array<int,array{key:string,value:mixed,is_general_search:bool,operator:string,is_bitwise:bool,bit_wise:string}> $condition The conditions to apply to the update query.
      * @return bool True if the data was updated successfully, false otherwise.
+     * @throws NotFoundException If no user is found to update.
+     * @throws AtomicityException If more than one user is found to update.
      */
     public function update(array $data, array $condition): bool
     {
-        $logger = self::getDatabaseHandler()->getLogger();
         $users = $this->find($condition);
-        $log_data = [
-            "Condition" => $condition,
-        ];
         if (empty($users)) {
-            $logger::log("There is no user to update.", $logger::ERROR, $log_data);
-            return false;
+            throw new NotFoundException("There is no user to update.");
         }
         if (count($users) > 1) {
-            $logger::log("There is more than one user to update.", $logger::ERROR, $log_data);
-            return false;
+            throw new AtomicityException("There is more than one user to update.");
         }
         $user = $users[0];
         foreach ($data as $key => $value) {
