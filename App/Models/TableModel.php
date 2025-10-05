@@ -16,6 +16,7 @@ use App\Core\Errors\NotFoundException;
  * @method array<int,self> getAll() Retrieving all records from the database table.
  * @method bool deleteData(array $conditions, bool $is_multiple) Deleting records from the database table based on the conditions.
  * @method static bool enforce(bool $condition, string $message, mixed $error) Enforcing a condition and throwing an exception if it is not met.
+ * @method array<string,mixed> getData(self $model) This method takes a model object and returns an array containing all the data in the object.
  */
 class Table_Model extends Model
 {
@@ -50,22 +51,33 @@ class Table_Model extends Model
     }
 
     /**
+     * This method takes a model object and returns an array containing all the data in the object.
+     * @param self $model The model object to get the data from.
+     * @return array<string,mixed> The data in the model object.
+     */
+    private function getData(self $model): array
+    {
+        $excluded_fields = ["table_name", "database_handler", "dirty_attributes"];
+        $response = [];
+        foreach ($model as $key => $value) {
+            $is_allowed = !in_array($key, $excluded_fields);
+            if (!$is_allowed) {
+                continue;
+            }
+            $response[$key] = $value;
+        }
+        return $response;
+    }
+
+    /**
      * Creating a new with the given properties.
      * @param array<string,mixed> $properties The properties to set in the new object.
      * @return bool True if the was successfully created, false otherwise.
      */
     public function create(array $properties): bool
     {
-        $excluded_fields = ["table_name"];
         $model = new static(self::getDatabaseHandler(), $this->getTableName(), $properties);
-        $data = [];
-        foreach ($model as $key => $value) {
-            $is_allowed = !in_array($key, $excluded_fields);
-            if (!$is_allowed) {
-                continue;
-            }
-            $data[$key] = $value;
-        }
+        $data = $this->getData($model);
         return $model::post($this->getTableName(), $data);
     }
 
@@ -92,15 +104,7 @@ class Table_Model extends Model
         foreach ($data as $key => $value) {
             $model->setFields($key, $value);
         }
-        $excluded_fields = ["table_name"];
-        $data = [];
-        foreach ($model as $key => $value) {
-            $is_allowed = !in_array($key, $excluded_fields);
-            if (!$is_allowed) {
-                continue;
-            }
-            $data[$key] = $value;
-        }
+        $data = $this->getData($model);
         return $model::put($this->getTableName(), $data, $condition);
     }
 
