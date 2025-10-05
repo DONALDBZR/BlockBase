@@ -17,12 +17,12 @@ use InvalidArgumentException;
  * @method void setFields(string $field, mixed $data) Setting the value of a field in the model object.
  * @method static self getModel(array<string,mixed> $row) Converting a database row to a model object.
  * @method static array<int,self> all(string $table_name) Retrieving all records from the database table.
- * @method static void delete(int $id) Deleting a record from the database table.
  * @method void markDirty(string $attribute) Marking an attribute as dirty.
  * @method array<string,mixed> getDirtyAttributes() Getting the dirty attributes.
  * @method void clearDirtyAttributes() Clearing the dirty attributes.
  * @method static bool post(string $table_name, array $data) Posting data to the database table.
  * @method static bool put(string $table_name, array $data, array $conditions) Updating data in the database table.
+ * @method statuc bool delete(string $table_name, array $conditions) Deleting data from the database table.
  */
 class Model
 {
@@ -341,14 +341,6 @@ class Model
     }
 
     /**
-     * Deleting a record from the database table.
-     * @param int $id The ID of the record to delete.
-     * @return void
-     */
-    public static function delete(int $id): void
-    {}
-
-    /**
      * Marking an attribute as dirty.
      * @param string $attribute The attribute to mark as dirty.
      * @return void
@@ -374,5 +366,24 @@ class Model
     public function clearDirtyAttributes(): void
     {
         $this->dirty_attributes = [];
+    }
+
+    /**
+     * Deleting data from the database by executing a query with the given parameters.
+     * @param string $table_name The name of the table to delete from.
+     * @param array<int,array{key:string,value:mixed,is_general_search:bool,operator:string,is_bitwise:bool,bit_wise:string}> $conditions The conditions to apply to the query.
+     * @return bool True if the data was deleted successfully, false otherwise.
+     */
+    public static function delete(string $table_name, array $conditions): bool
+    {
+        $query = "DELETE FROM {$table_name}";
+        $parameters = [];
+        self::setCondition(
+            $table_name,
+            $conditions,
+            $parameters,
+            $query
+        );
+        return self::getDatabaseHandler()->delete($query, $parameters);
     }
 }
