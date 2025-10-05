@@ -19,6 +19,7 @@ use InvalidArgumentException;
  * @method array<string,mixed> getData(self $model) This method takes a model object and returns an array containing all the data in the object.
  * @property array<string,array{is_required:bool,max_length:int,is_unique:bool}> $validation_rules The validation rules to apply to the model object.
  * @method bool isUnique(string $field, mixed $value) Checking if a given field with a given value is unique in the database table.
+ * @method void validate(array $data) Validating the given data according to the validation rules.
  */
 class Table_Model extends Model
 {
@@ -94,6 +95,7 @@ class Table_Model extends Model
      */
     public function create(array $properties): bool
     {
+        $this->validate($properties);
         $model = new static(self::getDatabaseHandler(), $this->getTableName(), $properties);
         $data = $this->getData($model);
         return $model::post($this->getTableName(), $data);
@@ -115,6 +117,7 @@ class Table_Model extends Model
      */
     public function update(array $data, array $condition): bool
     {
+        $this->validate($data);
         $models = $this->find($condition);
         self::enforce(!empty($models), "There is no user to update.", NotFoundException::class);
         self::enforce(count($models) === 1, "There is more than one user to update.", AtomicityException::class);
@@ -189,13 +192,20 @@ class Table_Model extends Model
         throw new $error($message);
     }
 
+    /**
+     * Validating the given data according to the validation rules.
+     * @param array $data The data to validate.
+     * @throws InvalidArgumentException If the data does not meet the validation rules.
+     */
     private function validate(array $data): void
     {
         foreach ($this->getValidationRules() as $field => $rules) {
             $value = $data[$field] ?? null;
-            self::enforce((!$rules["is_required"] && !empty($value)), "The field is required.", InvalidArgumentException::class);
-            self::enforce((!isset($rules["max_length"]) && !is_string($value) && (strlen($value) <= $rules["max_length"])), "The field is too long.", InvalidArgumentException::class);
-            self::enforce((!$rules["is_unique"] && !$this->isUnique($field, $value)), "The field must be unique.", InvalidArgumentException::class);
+            self::enforce(($rules["is_required"] && !empty($value)), "The field is required.", InvalidArgumentException::class);
+            if (is_string($value)) {
+                self::enforce((isset($rules["max_length"]) && is_string($value) && (strlen($value) <= $rules["max_length"])), "The field is too long.", InvalidArgumentException::class);
+            }
+            self::enforce(($rules["is_unique"] && $this->isUnique($field, $value)), "The field must be unique.", InvalidArgumentException::class);
         }
     }
 
