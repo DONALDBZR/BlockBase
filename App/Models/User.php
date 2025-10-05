@@ -23,6 +23,7 @@ use App\Core\Errors\NotFoundException;
  * @method array<int,self> find(array $conditions) Retrieving a list of user records from the database table based on the conditions.
  * @method array<int,self> getAll() Retrieving all user records from the database table.
  * @method bool deleteData(array $conditions, bool $is_multiple) Deleting user records from the database table based on the conditions.
+ * @method static bool enforce(bool $condition, string $message, mixed $error) Enforcing a condition and throwing an exception if it is not met.
  */
 class User extends Model
 {
@@ -100,12 +101,8 @@ class User extends Model
     public function update(array $data, array $condition): bool
     {
         $users = $this->find($condition);
-        if (empty($users)) {
-            throw new NotFoundException("There is no user to update.");
-        }
-        if (count($users) > 1) {
-            throw new AtomicityException("There is more than one user to update.");
-        }
+        self::enforce(!empty($users), "There is no user to update.", NotFoundException::class);
+        self::enforce(count($users) === 1, "There is more than one user to update.", AtomicityException::class);
         $user = $users[0];
         foreach ($data as $key => $value) {
             $user->setFields($key, $value);
@@ -164,13 +161,24 @@ class User extends Model
     ): bool
     {
         $users = $this->find($conditions);
-        if (empty($users)) {
-            throw new NotFoundException("There is no user to delete.");
-        }
-        if (count($users) > 1 && !$is_multiple) {
-            throw new AtomicityException("There is more than one user to delete.");
-        }
+        self::enforce(!empty($users), "There is no user to delete.", NotFoundException::class);
+        self::enforce(count($users) === 1, "There is more than one user to delete.", AtomicityException::class);
         $user = $users[0];
         return $user::delete($this->getTableName(), $conditions);
+    }
+
+    /**
+     * Enforcing a condition and throwing an exception if it is not met.
+     * @param bool $condition The condition to enforce.
+     * @param string $message The message to include in the exception.
+     * @param NotFoundException|AtomicityException $error The exception to throw if the condition is not met.
+     * @throws NotFoundException|AtomicityException If the condition is not met.
+     */
+    private static function enforce(bool $condition, string $message, mixed $error): void
+    {
+        if ($condition) {
+            return;
+        }
+        throw new $error($message);
     }
 }
