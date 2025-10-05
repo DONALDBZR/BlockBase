@@ -283,15 +283,16 @@ class Model
             return;
         }
         if (is_resource($data)) {
-            $this->$field = $data;
+            $this->$field = stream_get_contents($data);
             return;
         }
         $log_data = [
             "Field" => $field,
             "Data Type" => gettype($data)
         ];
+        $logger = self::getDatabaseHandler()->getLogger();
         $message = "This data type is not allowed in this database.";
-        self::getDatabaseHandler()->getLogger()::log($message, self::getDatabaseHandler()->getLogger()::ERROR, $log_data);
+        $logger::log($message, $logger::ERROR, $log_data);
         throw new InvalidArgumentException($message, 503);
     }
 
