@@ -21,7 +21,7 @@ use InvalidArgumentException;
  * @method bool isUnique(string $field, mixed $value) Checking if a given field with a given value is unique in the database table.
  * @method void validate(array $data) Validating the given data according to the validation rules.
  */
-class Table_Model extends Model
+abstract class Table_Model extends Model
 {
     private string $table_name;
     private array $validation_rules;
@@ -194,7 +194,7 @@ class Table_Model extends Model
 
     /**
      * Validating the given data according to the validation rules.
-     * @param array $data The data to validate.
+     * @param array<string,mixed> $data The data to validate.
      * @throws InvalidArgumentException If the data does not meet the validation rules.
      */
     private function validate(array $data): void
@@ -231,4 +231,12 @@ class Table_Model extends Model
         );
         return empty($response);
     }
+
+    abstract protected function beforeSave(array $data): array;
+
+    abstract protected function afterSave(array $data): void;
+
+    abstract protected function beforeDelete(array $conditions): void;
+
+    abstract protected function afterDelete(array $conditions): void;
 }
