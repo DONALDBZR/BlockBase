@@ -1,11 +1,17 @@
 <?php
 require_once __DIR__ . "/../vendor/autoload.php";
 
-// Loading environment variables
-if (file_exists(__DIR__ . "/../.env")) {
-    $environment = parse_ini_file(__DIR__ . "/../.env");
+
+$environment_path = __DIR__ . "/../.env";
+$is_testing = (getenv("APP_ENV") === "testing" || getenv("TEST_ENV") === "1" || (php_sapi_name() === "cli" && file_exists(__DIR__ . "/../.env.testing")));
+if ($is_testing) {
+    $environment_path = __DIR__ . "/../.env.testing";
+}
+if (file_exists($environment_path)) {
+    $environment = parse_ini_file($environment_path);
     foreach ($environment as $key => $value) {
         $_ENV[$key] = $value;
+        putenv("{$key}={$value}");
     }
 }
 
