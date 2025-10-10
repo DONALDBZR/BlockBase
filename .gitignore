@@ -1,4 +1,5 @@
 /.env
+/.env.testing
 /vendor/
 /Public/.well-known/
 /Public/.htaccess
