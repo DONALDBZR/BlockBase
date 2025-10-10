@@ -8,10 +8,6 @@ use PDOException;
 use PDOStatement;
 
 class Database_Handler {
-    private string $host;
-    private string $schema;
-    private string $username;
-    private string $password;
     private array $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -30,10 +26,6 @@ class Database_Handler {
      */
     public function __construct()
     {
-        $this->host = $_ENV["DB_HOST"];
-        $this->schema = $_ENV["DB_SCHEMA"];
-        $this->username = $_ENV["DB_USERNAME"];
-        $this->password = $_ENV["DB_PASSWORD"];
         $this->setLogger(Logger::init());
         $this->connect();
     }
@@ -79,12 +71,18 @@ class Database_Handler {
             return;
         }
         try {
-            $data_source_name = "mysql:host={$this->host};dbname={$this->schema}";
+            if ($_ENV["DB_CONNECTION"] === "sqlite") {
+                $this->setConnection(
+                    new PDO("sqlite:{$_ENV['DB_DATABASE']}")
+                );
+                $this->getLogger()->log("The testing database is connected.", Logger::INFO);
+                return;
+            }
             $this->setConnection(
                 new PDO(
-                    $data_source_name,
-                    $this->username,
-                    $this->password,
+                    "mysql:host={$_ENV['DB_HOST']};dbname={$_ENV['DB_SCHEMA']}",
+                    $_ENV["DB_USERNAME"],
+                    $_ENV["DB_PASSWORD"],
                     $this->options
                 )
             );
