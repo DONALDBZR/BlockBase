@@ -4,3 +4,9 @@
 /Public/.well-known/
 /Public/.htaccess
 /.vscode/
+/.github/
+/BlockBase.*
+/composer.lock
+/*.sql
+/Documents/*.md
+/Storage/Logs/*.log
