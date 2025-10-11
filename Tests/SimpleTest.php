@@ -40,6 +40,7 @@ $_ENV['REMOTE_ADDR'] = '127.0.0.1';
  * @method void putTestSimples(array $data) Testing the PUT operation of the Model class with multiple records.
  * @method void putTestSimple(array $data, int $new_value) Testing the PUT operation of the Model class.
  * @method void deleteTestSimples(array $data) Testing the DELETE operation of the Model class with multiple records.
+ * @method void deleteTestSimple(array $data) Testing the DELETE operation of the Model class.
  */
 class SimpleTest
 {
@@ -356,6 +357,55 @@ class SimpleTest
             $value_limit = $limit ^ 2;
             $new_value = rand(0, $value_limit);
             $this->putTestSimple($simple, $new_value);
+        }
+    }
+
+    /**
+     * Testing the DELETE operation of the Model class with a single record.
+     * 
+     * This method tests the following:
+     * 1. Deleting a single record from the database table.
+     * 2. Throwing an exception if the DELETE operation has failed.
+     * 3. Throwing an exception if the DELETE verification has failed.
+     * @param array $data The data to delete from the database table.
+     * @return void
+     * @throws Exception If the DELETE operation has failed or the DELETE verification has failed.
+     */
+    private function deleteTestSimple(array $data): void
+    {
+        $response = Model::delete(
+            "Test_Simples",
+            [
+                "key" => "name",
+                "value" => $data["name"],
+                "is_general_search" => false,
+                "operator" => "=",
+                "is_bitwise" => false,
+                "bit_wise" => ""
+            ]
+        );
+        if (!$response) {
+            throw new Exception("The DELETE operation has failed.");
+        }
+        $models = Model::get(
+            true,
+            "Test_Simples",
+            "",
+            [],
+            [
+                "key" => "name",
+                "value" => $data["name"],
+                "is_general_search" => false,
+                "operator" => "=",
+                "is_bitwise" => false,
+                "bit_wise" => ""
+            ],
+            [],
+            [],
+            []
+        );
+        if (!empty($models)) {
+            throw new Exception("The DELETE verification has failed.");
         }
     }
 
