@@ -6,7 +6,6 @@ require_once "{$_SERVER['DOCUMENT_ROOT']}/App/Bootstraps/Models.php";
 
 
 use App\Core\Database_Handler;
-use App\Core\Logger;
 use App\Models\Model;
 use Exception;
 
