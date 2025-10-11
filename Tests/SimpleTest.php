@@ -45,7 +45,7 @@ $_ENV['REMOTE_ADDR'] = '127.0.0.1';
  * @method void testCRUDOperations() Testing the CRUD operations of the Model class.
  * @method void printResults() Printing the results of the tests.
  */
-class SimpleTest
+class Simple_Test
 {
     private Database_Handler $database;
     private int $runs = 0;
@@ -514,6 +514,5 @@ class SimpleTest
     }
 }
 
-// Run the tests
-$simpleTest = new SimpleTest();
-$simpleTest->runTests();
+$simple_test = new Simple_Test();
+$simple_test->runTests();
