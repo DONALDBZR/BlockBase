@@ -33,6 +33,7 @@ $_ENV['REMOTE_ADDR'] = '127.0.0.1';
  * @method void createTestSimplesTable() Creating a table for testing purposes called `Test_Simples`.
  * @method string generateRandomString(int $length) Generating a random string of a given length.
  * @method array<int,array{name:string,value:int}> getTestSimplesData() Generating an array of random data for the Test_Simples table.
+ * @method void postTestSimple(array $data) Testing the POST operation of the Model class.
  */
 class SimpleTest
 {
@@ -200,6 +201,27 @@ class SimpleTest
             ];
         }
         return $response;
+    }
+
+    /**
+     * Testing the POST operation of the Model class.
+     * @param array $data The data to post to the database table.
+     * @throws Exception If the POST operation has failed.
+     */
+    private function postTestSimple(array $data): void
+    {
+        $response = Model::post("Test_Simples", $data);
+        if ($response) {
+            return;
+        }
+        throw new Exception("The POST operation has failed.");
+    }
+
+    private function postTestSimples(array $data): void
+    {
+        foreach ($data as $simple) {
+            $this->postTestSimple($simple);
+        }
     }
 
     private function testCRUDOperations(): void
