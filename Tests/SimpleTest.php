@@ -41,6 +41,7 @@ $_ENV['REMOTE_ADDR'] = '127.0.0.1';
  * @method void putTestSimple(array $data, int $new_value) Testing the PUT operation of the Model class.
  * @method void deleteTestSimples(array $data) Testing the DELETE operation of the Model class with multiple records.
  * @method void deleteTestSimple(array $data) Testing the DELETE operation of the Model class.
+ * @method void dropTestSimplesTable() Dropping the table for testing purposes called `Test_Simples`.
  */
 class SimpleTest
 {
@@ -424,6 +425,20 @@ class SimpleTest
         }
     }
 
+    /**
+     * Droping the `Test_Simples` table.
+     * @return void
+     * @throws Exception If the drop operation has failed.
+     */
+    private function dropTestSimplesTable(): void
+    {
+        $response = $this->database->post("DROP TABLE IF EXISTS `Test_Simples`");
+        if ($response) {
+            return;
+        }
+        throw new Exception("Failed to delete Test_Simples table");
+    }
+
     private function testCRUDOperations(): void
     {
         $this->createTestSimplesTable();
@@ -432,29 +447,7 @@ class SimpleTest
         $this->getTestSimples($data);
         $this->putTestSimples($data);
         $this->deleteTestSimples($data);
-
-        // Test DELETE operation
-        $deleteConditions = [
-            [
-                'key' => 'name',
-                'value' => 'test_item',
-                'is_general_search' => false,
-                'operator' => '=',
-                'is_bitwise' => false,
-                'bit_wise' => ''
-            ]
-        ];
-        
-        $deleteResult = \App\Models\Model::delete('test_simple', $deleteConditions);
-        if (!$deleteResult) {
-            throw new Exception("DELETE operation failed");
-        }
-
-        // Verify deletion
-        $verifyDelete = $this->db->get("SELECT * FROM test_simple WHERE name = ?", ['test_item']);
-        if (!empty($verifyDelete)) {
-            throw new Exception("DELETE verification failed");
-        }
+        $this->dropTestSimplesTable();
 
         // Clean up test table
         $this->db->post("DROP TABLE IF EXISTS test_simple");
