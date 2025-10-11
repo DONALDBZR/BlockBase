@@ -42,6 +42,7 @@ $_ENV['REMOTE_ADDR'] = '127.0.0.1';
  * @method void deleteTestSimples(array $data) Testing the DELETE operation of the Model class with multiple records.
  * @method void deleteTestSimple(array $data) Testing the DELETE operation of the Model class.
  * @method void dropTestSimplesTable() Dropping the table for testing purposes called `Test_Simples`.
+ * @method void testCRUDOperations() Testing the CRUD operations of the Model class.
  */
 class SimpleTest
 {
@@ -439,6 +440,19 @@ class SimpleTest
         throw new Exception("Failed to delete Test_Simples table");
     }
 
+    /**
+     * Testing the CRUD operations for the Model class.
+     * 
+     * This method tests the following:
+     * 1. Creating a table for testing purposes called `Test_Simples`.
+     * 2. Inserting multiple records into the `Test_Simples` table.
+     * 3. Retrieving multiple records from the `Test_Simples` table.
+     * 4. Updating multiple records in the `Test_Simples` table.
+     * 5. Deleting multiple records from the `Test_Simples` table.
+     * 6. Dropping the `Test_Simples` table.
+     * @return void
+     * @throws Exception If any of the operations fail.
+     */
     private function testCRUDOperations(): void
     {
         $this->createTestSimplesTable();
@@ -448,9 +462,6 @@ class SimpleTest
         $this->putTestSimples($data);
         $this->deleteTestSimples($data);
         $this->dropTestSimplesTable();
-
-        // Clean up test table
-        $this->db->post("DROP TABLE IF EXISTS test_simple");
     }
 
     private function printResults(): void
