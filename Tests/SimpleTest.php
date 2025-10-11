@@ -28,6 +28,7 @@ $_ENV['REMOTE_ADDR'] = '127.0.0.1';
  * @property array<int,string> $failures An array of test failures.
  * @method void runTests() Running a suite of tests for a basic Object-Relational Mapping system.
  * @method void runTest(string $name, callable $function) Running a single test.
+ * @method void testDatabaseConnection() Testing the database connection to ensure it is working properly.
  */
 class SimpleTest
 {
@@ -108,13 +109,18 @@ class SimpleTest
         }
     }
 
+    /**
+     * Testing the database connection to ensure it is working properly.
+     * @return void
+     * @throws Exception If the database connection fails.
+     */
     private function testDatabaseConnection(): void
     {
-        // Test basic database connection
-        $result = $this->db->get("SELECT 1 as test");
-        if (empty($result)) {
-            throw new Exception("Database connection failed");
+        $response = $this->database->get("SELECT 1 as test");
+        if (!empty($response)) {
+            return;
         }
+        throw new Exception("Database connection failed");
     }
 
     private function testModelBasicFunctionality(): void
