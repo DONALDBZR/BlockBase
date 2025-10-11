@@ -34,6 +34,7 @@ $_ENV['REMOTE_ADDR'] = '127.0.0.1';
  * @method string generateRandomString(int $length) Generating a random string of a given length.
  * @method array<int,array{name:string,value:int}> getTestSimplesData() Generating an array of random data for the Test_Simples table.
  * @method void postTestSimple(array $data) Testing the POST operation of the Model class.
+ * @method void postTestSimples(array $data) Testing the POST operation of the Model class with multiple records.
  */
 class SimpleTest
 {
@@ -217,6 +218,12 @@ class SimpleTest
         throw new Exception("The POST operation has failed.");
     }
 
+    /**
+     * Testing the POST operation of the Model class with multiple records.
+     * @param array<int,array{name:string,value:int}> $data The array of records to post to the database table.
+     * @return void
+     * @throws Exception
+     */
     private function postTestSimples(array $data): void
     {
         foreach ($data as $simple) {
@@ -228,17 +235,7 @@ class SimpleTest
     {
         $this->createTestSimplesTable();
         $data = $this->getTestSimplesData();
-        // Test INSERT operation
-        $insertData = [
-            'name' => 'test_item',
-            'value' => 42
-        ];
-        
-        $insertResult = \App\Models\Model::post('test_simple', $insertData);
-        if (!$insertResult) {
-            throw new Exception("INSERT operation failed");
-        }
-
+        $this->postTestSimples($data);
         // Test SELECT operation
         $selectResult = $this->db->get("SELECT * FROM test_simple WHERE name = ?", ['test_item']);
         if (empty($selectResult)) {
