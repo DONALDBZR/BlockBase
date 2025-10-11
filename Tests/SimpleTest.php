@@ -43,6 +43,7 @@ $_ENV['REMOTE_ADDR'] = '127.0.0.1';
  * @method void deleteTestSimple(array $data) Testing the DELETE operation of the Model class.
  * @method void dropTestSimplesTable() Dropping the table for testing purposes called `Test_Simples`.
  * @method void testCRUDOperations() Testing the CRUD operations of the Model class.
+ * @method void printResults() Printing the results of the tests.
  */
 class SimpleTest
 {
@@ -464,41 +465,52 @@ class SimpleTest
         $this->dropTestSimplesTable();
     }
 
+    /**
+     * Printing a summary of the test results to the console.
+     * 
+     * It includes the following information:
+     * 1. The total number of tests run.
+     * 2. The number of tests that have passed.
+     * 3. The number of tests that have failed.
+     * 4. A list of the failed tests.
+     * 5. The success rate of the tests in percentage format.
+     * 6. A message indicating if all tests have passed or not.
+     * 7. A message indicating the implementation of the test suite is complete.
+     * @return void
+     */
     private function printResults(): void
     {
         echo "\n==========================\n";
         echo "📊 Test Results Summary\n";
         echo "==========================\n";
-        echo "Tests Run: {$this->testsRun}\n";
-        echo "Tests Passed: {$this->testsPassed}\n";
-        echo "Tests Failed: {$this->testsFailed}\n";
-        
-        if ($this->testsFailed > 0) {
+        echo "Tests Run: {$this->runs}\n";
+        echo "Tests Passed: {$this->passed}\n";
+        echo "Tests Failed: {$this->failed}\n";
+        $has_failures = ($this->failed > 0);
+        if ($has_failures) {
             echo "\n❌ Failed Tests:\n";
             foreach ($this->failures as $failure) {
-                echo "   - {$failure}\n";
+                echo " - {$failure}\n";
             }
         }
-
-        $successRate = ($this->testsPassed / $this->testsRun) * 100;
-        echo "\nSuccess Rate: " . number_format($successRate, 1) . "%\n";
-
-        if ($this->testsFailed === 0) {
-            echo "\n🎉 All tests passed! Basic ORM functionality is working.\n";
-            echo "\n✅ ORM Test Suite Implementation Complete!\n";
-            echo "The comprehensive test suite has been created with:\n";
-            echo "- PHPUnit configuration and bootstrap\n";
-            echo "- Unit tests for Model class\n";
-            echo "- Integration tests for CRUD operations\n";
-            echo "- Relationship and data loading tests\n";
-            echo "- Scopes and filters tests\n";
-            echo "- Transaction and bulk operations tests\n";
-            echo "- Migration and seeder tests\n";
-            echo "- Test models and runner scripts\n";
-            echo "- Comprehensive documentation\n\n";
-        } else {
-            echo "\n⚠️  Some tests failed. Please review the issues above.\n";
+        $success_rate = number_format(($this->passed / $this->runs) * 100, 2);
+        echo "\nSuccess Rate: {$success_rate} %\n";
+        if ($has_failures) {
+            echo "\n❗ Some tests failed. Please review the issues above.\n";
+            return;
         }
+        echo "\n🎉 All tests passed! Basic ORM functionality is working.\n";
+        echo "\n✅ ORM Test Suite Implementation Complete!\n";
+        echo "The comprehensive test suite has been created with:\n";
+        echo "- PHPUnit configuration and bootstrap\n";
+        echo "- Unit tests for Model class\n";
+        echo "- Integration tests for CRUD operations\n";
+        echo "- Relationship and data loading tests\n";
+        echo "- Scopes and filters tests\n";
+        echo "- Transaction and bulk operations tests\n";
+        echo "- Migration and seeder tests\n";
+        echo "- Test models and runner scripts\n";
+        echo "- Comprehensive documentation\n\n";
     }
 }
 
