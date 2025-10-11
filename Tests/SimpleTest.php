@@ -35,6 +35,7 @@ $_ENV['REMOTE_ADDR'] = '127.0.0.1';
  * @method array<int,array{name:string,value:int}> getTestSimplesData() Generating an array of random data for the Test_Simples table.
  * @method void postTestSimple(array $data) Testing the POST operation of the Model class.
  * @method void postTestSimples(array $data) Testing the POST operation of the Model class with multiple records.
+ * @method void getTestSimples(array $data) Testing the GET operation of the Model class with multiple records.
  */
 class SimpleTest
 {
@@ -231,11 +232,25 @@ class SimpleTest
         }
     }
 
+    /**
+     * Testing the GET operation of the Model class with multiple records.
+     * @param array<int,array{name:string,value:int}> $data The array of records to get from the database table.
+     * @return void
+     * @throws Exception
+     */
+    private function getTestSimples(array $data): void
+    {
+        foreach ($data as $simple) {
+            $this->getTestSimple($simple);
+        }
+    }
+
     private function testCRUDOperations(): void
     {
         $this->createTestSimplesTable();
         $data = $this->getTestSimplesData();
         $this->postTestSimples($data);
+        $this->getTestSimples($data);
         // Test SELECT operation
         $selectResult = $this->db->get("SELECT * FROM test_simple WHERE name = ?", ['test_item']);
         if (empty($selectResult)) {
