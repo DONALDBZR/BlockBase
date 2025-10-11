@@ -262,10 +262,12 @@ class SimpleTest
             [],
             []
         );
-        if (!empty($response)) {
-            return;
+        if (empty($response)) {
+            throw new Exception("The GET operation has failed.");
         }
-        throw new Exception("The GET operation has failed.");
+        if ($response[0]->value !== $data["value"]) {
+            throw new Exception("Data Integrity Check has failed.");
+        }
     }
 
     /**
@@ -276,7 +278,10 @@ class SimpleTest
      */
     private function getTestSimples(array $data): void
     {
-        foreach ($data as $simple) {
+        $limit = count($data);
+        for ($index = 0; $index < $limit; $index++) {
+            $array_index = random_int(0, $limit - 1);
+            $simple = $data[$array_index];
             $this->getTestSimple($simple);
         }
     }
@@ -287,16 +292,6 @@ class SimpleTest
         $data = $this->getTestSimplesData();
         $this->postTestSimples($data);
         $this->getTestSimples($data);
-        // Test SELECT operation
-        $selectResult = $this->db->get("SELECT * FROM test_simple WHERE name = ?", ['test_item']);
-        if (empty($selectResult)) {
-            throw new Exception("SELECT operation failed");
-        }
-
-        if ($selectResult[0]['value'] != 42) {
-            throw new Exception("Data integrity check failed");
-        }
-
         // Test UPDATE operation
         $updateConditions = [
             [
