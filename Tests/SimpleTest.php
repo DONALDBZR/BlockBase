@@ -21,18 +21,26 @@ $_ENV['REMOTE_ADDR'] = '127.0.0.1';
 
 /**
  * It is designed to run a suite of tests for a basic Object-Relational Mapping system.
+ * @property Database_Handler $database The database handler to use for queries.
+ * @property int $runs The number of tests that have been run.
+ * @property int $passed The number of tests that have passed.
+ * @property int $failed The number of tests that have failed.
+ * @property array $failures An array of test failures.
  */
 class SimpleTest
 {
-    private Database_Handler $db;
-    private int $testsRun = 0;
-    private int $testsPassed = 0;
-    private int $testsFailed = 0;
+    private Database_Handler $database;
+    private int $runs = 0;
+    private int $passed = 0;
+    private int $failed = 0;
     private array $failures = [];
 
+    /**
+     * Initializes the database handler.
+     */
     public function __construct()
     {
-        $this->db = new \App\Core\Database_Handler();
+        $this->database = new Database_Handler();
     }
 
     public function runTests(): void
