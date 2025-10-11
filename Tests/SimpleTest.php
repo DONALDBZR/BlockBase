@@ -8,7 +8,7 @@ require_once "{$_SERVER['DOCUMENT_ROOT']}/App/Bootstraps/Models.php";
 use App\Core\Database_Handler;
 use App\Core\Logger;
 use App\Models\Model;
-
+use Exception;
 
 $_ENV['APP_ENV'] = 'testing';
 $_ENV['DB_CONNECTION'] = 'sqlite';
@@ -25,8 +25,9 @@ $_ENV['REMOTE_ADDR'] = '127.0.0.1';
  * @property int $runs The number of tests that have been run.
  * @property int $passed The number of tests that have passed.
  * @property int $failed The number of tests that have failed.
- * @property array $failures An array of test failures.
+ * @property array<int,string> $failures An array of test failures.
  * @method void runTests() Running a suite of tests for a basic Object-Relational Mapping system.
+ * @method void runTest(string $name, callable $function) Running a single test.
  */
 class SimpleTest
 {
@@ -85,20 +86,25 @@ class SimpleTest
         $this->printResults();
     }
 
-    private function runTest(string $testName, callable $testFunction): void
+    /**
+     * Running a single test.
+     * @param string $name The name of the test to be run.
+     * @param callable $function The function to be called as the test.
+     * @return void
+     */
+    private function runTest(string $name, callable $function): void
     {
-        $this->testsRun++;
-        echo "Running: {$testName}... ";
-
+        $this->runs++;
+        echo "Running: {$name}...";
         try {
-            $testFunction();
+            $function();
             echo "✅ PASSED\n";
-            $this->testsPassed++;
-        } catch (Exception $e) {
+            $this->passed++;
+        } catch (Exception $error) {
             echo "❌ FAILED\n";
-            echo "   Error: " . $e->getMessage() . "\n";
-            $this->testsFailed++;
-            $this->failures[] = "{$testName}: " . $e->getMessage();
+            echo "Error: {$error->getMessage()} - Line: {$error->getLine()} - File: {$error->getFile()}\n";
+            $this->failed++;
+            $this->failures[] = "{$name}: {$error->getMessage()} - Line: {$error->getLine()} - File: {$error->getFile()}";
         }
     }
 
