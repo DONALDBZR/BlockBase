@@ -38,6 +38,7 @@ $_ENV['REMOTE_ADDR'] = '127.0.0.1';
  * @method void getTestSimples(array $data) Testing the GET operation of the Model class with multiple records.
  * @method void getTestSimple(array $data) Testing the GET operation of the Model class.
  * @method void putTestSimples(array $data) Testing the PUT operation of the Model class with multiple records.
+ * @method void putTestSimple(array $data, int $new_value) Testing the PUT operation of the Model class.
  */
 class SimpleTest
 {
@@ -284,6 +285,54 @@ class SimpleTest
             $array_index = random_int(0, $limit - 1);
             $simple = $data[$array_index];
             $this->getTestSimple($simple);
+        }
+    }
+
+    /**
+     * Testing the PUT operation of the Model class.
+     * @param array $data The data to update in the database table.
+     * @param int $new_value The new value to update the record with.
+     * @return void
+     * @throws Exception If the PUT operation has failed or if the verification of the PUT operation has failed.
+     */
+    private function putTestSimple(array $data, int $new_value): void
+    {
+        $response = Model::put(
+            "Test_Simples",
+            [
+                "value" => $new_value
+            ],
+            [
+                "key" => "name",
+                "value" => $data["name"],
+                "is_general_search" => false,
+                "operator" => "=",
+                "is_bitwise" => false,
+                "bit_wise" => ""
+            ]
+        );
+        if (!$response) {
+            throw new Exception("The PUT operation has failed.");
+        }
+        $model = Model::get(
+            true,
+            "Test_Simples",
+            "",
+            [],
+            [
+                "key" => "name",
+                "value" => $data["name"],
+                "is_general_search" => false,
+                "operator" => "=",
+                "is_bitwise" => false,
+                "bit_wise" => ""
+            ],
+            [],
+            [],
+            []
+        );
+        if ($model[0]->value !== $new_value) {
+            throw new Exception("The PUT verification has failed.");
         }
     }
 
