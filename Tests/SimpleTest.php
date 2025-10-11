@@ -31,6 +31,7 @@ $_ENV['REMOTE_ADDR'] = '127.0.0.1';
  * @method void testDatabaseConnection() Testing the database connection to ensure it is working properly.
  * @method void testModelBasicFunctionality() Testing the basic functionality of the Model class.
  * @method void createTestSimplesTable() Creating a table for testing purposes called `Test_Simples`.
+ * @method string generateRandomString(int $length) Generating a random string of a given length.
  */
 class SimpleTest
 {
@@ -163,16 +164,35 @@ class SimpleTest
      */
     private function createTestSimplesTable(): void
     {
-        $response = $this->database->post("CREATE TABLE IF NOT EXISTS `Test_Simples` (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255) NOT NULL, value INTEGER)");
+        $response = $this->database->post("CREATE TABLE IF NOT EXISTS `Test_Simples` (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(256) NOT NULL, value INTEGER)");
         if ($response) {
             return;
         }
         throw new Exception("Failed to create Test_Simples table");
     }
 
+    /**
+     * Generating a random string of a given length.
+     * @param int $length The length of the string to generate.
+     * @return string The generated random string.
+     */
+    private function generateRandomString(int $length): string
+    {
+        $bytes = ceil($length / 2);
+        $random_bytes = random_bytes($bytes);
+        $hexadecimal = bin2hex($random_bytes);
+        return substr($hexadecimal, 0, $length);
+    }
+
     private function testCRUDOperations(): void
     {
         $this->createTestSimplesTable();
+        $data = [];
+        for ($index = 0; $index < 1000; $index++) { 
+            $data[] = [
+                "name" => $this->generateRandomString(256)
+            ];
+        }
 
         // Test INSERT operation
         $insertData = [
