@@ -26,6 +26,7 @@ $_ENV['REMOTE_ADDR'] = '127.0.0.1';
  * @property int $passed The number of tests that have passed.
  * @property int $failed The number of tests that have failed.
  * @property array $failures An array of test failures.
+ * @method void runTests() Running a suite of tests for a basic Object-Relational Mapping system.
  */
 class SimpleTest
 {
@@ -43,15 +44,44 @@ class SimpleTest
         $this->database = new Database_Handler();
     }
 
+    /**
+     * Running a suite of tests for a basic Object-Relational Mapping system.
+     * 
+     * this method does the following:
+     * 1. Runs a series of tests to verify the basic functionality of the ORM system.
+     * 2. Prints the results of the tests.
+     * @return void
+     */
     public function runTests(): void
     {
         echo "🧪 Running Simple ORM Tests\n";
         echo "==========================\n\n";
-
-        $this->runTest('Database Connection', [$this, 'testDatabaseConnection']);
-        $this->runTest('Model Basic Functionality', [$this, 'testModelBasicFunctionality']);
-        $this->runTest('CRUD Operations', [$this, 'testCRUDOperations']);
-
+        $tests = [
+            [
+                "name" => "Database Connection",
+                "function" => [
+                    $this,
+                    "testDatabaseConnection"
+                ]
+            ],
+            [
+                "name" => "Model Basic Functionality",
+                "function" => [
+                    $this,
+                    "testModelBasicFunctionality"
+                ]
+            ],
+            [
+                "name" => "CRUD Operations",
+                "function" => [
+                    $this,
+                    "testCRUDOperations"
+                ]
+            ]
+        ];
+        foreach ($tests as $test) {
+            $this->runTest($test["name"], $test["function"]);
+        }
         $this->printResults();
     }
 
