@@ -32,6 +32,7 @@ $_ENV['REMOTE_ADDR'] = '127.0.0.1';
  * @method void testModelBasicFunctionality() Testing the basic functionality of the Model class.
  * @method void createTestSimplesTable() Creating a table for testing purposes called `Test_Simples`.
  * @method string generateRandomString(int $length) Generating a random string of a given length.
+ * @method array<int,array{name:string,value:int}> getTestSimplesData() Generating an array of random data for the Test_Simples table.
  */
 class SimpleTest
 {
@@ -184,16 +185,27 @@ class SimpleTest
         return substr($hexadecimal, 0, $length);
     }
 
+    /**
+     * Generating an array of random data for the Test_Simples table.
+     * @return array<int,array{name:string,value:int}> The generated array of random data.
+     */
+    private function getTestSimplesData(): array
+    {
+        $response = [];
+        for ($index = 0; $index < 1024; $index++) {
+            $limit = $index ^ 2;
+            $response[] = [
+                "name" => $this->generateRandomString(256),
+                "value" => rand(0, $limit)
+            ];
+        }
+        return $response;
+    }
+
     private function testCRUDOperations(): void
     {
         $this->createTestSimplesTable();
-        $data = [];
-        for ($index = 0; $index < 1000; $index++) { 
-            $data[] = [
-                "name" => $this->generateRandomString(256)
-            ];
-        }
-
+        $data = $this->getTestSimplesData();
         // Test INSERT operation
         $insertData = [
             'name' => 'test_item',
