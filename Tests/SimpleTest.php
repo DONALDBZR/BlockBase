@@ -29,6 +29,7 @@ $_ENV['REMOTE_ADDR'] = '127.0.0.1';
  * @method void runTests() Running a suite of tests for a basic Object-Relational Mapping system.
  * @method void runTest(string $name, callable $function) Running a single test.
  * @method void testDatabaseConnection() Testing the database connection to ensure it is working properly.
+ * @method void testModelBasicFunctionality() Testing the basic functionality of the Model class.
  */
 class SimpleTest
 {
@@ -123,27 +124,32 @@ class SimpleTest
         throw new Exception("Database connection failed");
     }
 
+    /**
+     * Testing the basic functionality of the Model class.
+     * 
+     * This method tests the following:
+     * 1. Instantiating a new Model object.
+     * 2. Marking an attribute as dirty.
+     * 3. Retrieving the dirty attributes.
+     * 4. Clearing the dirty attributes.
+     * 5. Retrieving the dirty attributes again after they have been cleared.
+     * 6. Throwing an exception if any of the above steps fail.
+     * @return void
+     * @throws Exception
+     */
     private function testModelBasicFunctionality(): void
     {
-        // Test Model class instantiation
-        $model = new \App\Models\Model($this->db);
-        
+        $model = new Model($this->database);
         if (!($model instanceof \App\Models\Model)) {
             throw new Exception("Model instantiation failed");
         }
-
-        // Test dirty tracking
-        $model->markDirty('test_field');
+        $model->markDirty("test_field");
         $dirtyAttributes = $model->getDirtyAttributes();
-        
-        if (!array_key_exists('test_field', $dirtyAttributes)) {
+        if (!array_key_exists("test_field", $dirtyAttributes)) {
             throw new Exception("Dirty tracking failed");
         }
-
-        // Test clear dirty attributes
         $model->clearDirtyAttributes();
         $dirtyAttributes = $model->getDirtyAttributes();
-        
         if (!empty($dirtyAttributes)) {
             throw new Exception("Clear dirty attributes failed");
         }
