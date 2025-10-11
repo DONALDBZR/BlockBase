@@ -7,6 +7,38 @@ use InvalidArgumentException;
 use PDOException;
 use PDOStatement;
 
+
+/**
+ * It is a PHP class that provides methods for interacting with a database.  It is designed to handle database queries, transactions, and data manipulation.
+ * @property array<int,int|bool> $options An array of options for the PDO object.
+ * @property ?PDO $connection The connection to the database.
+ * @property Logger $logger The logger object.
+ * @property ?PDOStatement $cursor The cursor object.
+ * @method void connect() Establishing a connection to the database.
+ * @method void initCursor(string $query) Initializing the database query cursor.
+ * @method void assertDataType(mixed $value, string $type) Asserting that the value is of the given data type.
+ * @method void bindInt(string $key, mixed $value) Binding an integer value to a parameter.
+ * @method void bindFloat(string $key, mixed $value) Binding a float value to a parameter.
+ * @method void bindString(string $key, mixed $value) Binding a string value to a parameter.
+ * @method void bindNull(string $key, mixed $value) Binding a null value to a parameter.
+ * @method void bindBlob(string $key, mixed $value) Binding a blob value to a parameter.
+ * @method void bindParameter(string $key, mixed $value) Binding a parameter value to a parameter.
+ * @method void bindParameters(array<string,mixed> $parameters) Binding multiple parameter values to a query.
+ * @method void prepareCursor(string $query, array<string,mixed> $parameters) Preparing a query for execution.
+ * @method bool execute(string $query, array<string,mixed> $parameters) Executing a query.
+ * @method array fetchAll(string $query, array<string,mixed> $parameters) Fetching all rows from a query.
+ * @method iterable fetchStream(string $query, array<string,mixed> $parameters) Fetching a stream of rows from a query.
+ * @method void startTransaction() Starting a transaction.
+ * @method void rollbackTransaction(PDOException $previous_error) Rolling back a transaction.
+ * @method void commitTransaction() Committing a transaction.
+ * @method iterable fetch(string $query, array<string,mixed> $parameters, bool $stream = false) Fetching data from a query.
+ * @method void clearCursor() Clearing the database query cursor.
+ * @method iterable get(string $query, array<string,mixed> $parameters, bool $stream = false) Fetching data from a query.
+ * @method bool manipulateData(string $query, array<string,mixed> $parameters) Manipulating data in the database.
+ * @method bool delete(string $query, array<string,mixed> $parameters) Deleting data from the database.
+ * @method bool put(string $query, array<string,mixed> $parameters) Updating data in the database.
+ * @method bool post(string $query, array<string,mixed> $parameters) Inserting data into the database.
+ */
 class Database_Handler {
     private array $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
