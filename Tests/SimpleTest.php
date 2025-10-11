@@ -37,6 +37,7 @@ $_ENV['REMOTE_ADDR'] = '127.0.0.1';
  * @method void postTestSimples(array $data) Testing the POST operation of the Model class with multiple records.
  * @method void getTestSimples(array $data) Testing the GET operation of the Model class with multiple records.
  * @method void getTestSimple(array $data) Testing the GET operation of the Model class.
+ * @method void putTestSimples(array $data) Testing the PUT operation of the Model class with multiple records.
  */
 class SimpleTest
 {
@@ -283,6 +284,28 @@ class SimpleTest
             $array_index = random_int(0, $limit - 1);
             $simple = $data[$array_index];
             $this->getTestSimple($simple);
+        }
+    }
+
+    /**
+     * Testing the PUT operation of the Model class with multiple records.
+     * 
+     * This method tests the following:
+     * 1. Updating a single record in the database table.
+     * 2. Throwing an exception if the PUT operation has failed.
+     * @param array $data The array of records to update in the database table.
+     * @return void
+     * @throws Exception If the PUT operation has failed.
+     */
+    private function putTestSimples(array $data): void
+    {
+        $limit = count($data);
+        for ($index = 0; $index < $limit; $index++) {
+            $array_index = random_int(0, $limit - 1);
+            $simple = $data[$array_index];
+            $value_limit = $limit ^ 2;
+            $new_value = rand(0, $value_limit);
+            $this->putTestSimple($simple, $new_value);
         }
     }
 
