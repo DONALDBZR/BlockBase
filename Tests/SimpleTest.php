@@ -36,6 +36,7 @@ $_ENV['REMOTE_ADDR'] = '127.0.0.1';
  * @method void postTestSimple(array $data) Testing the POST operation of the Model class.
  * @method void postTestSimples(array $data) Testing the POST operation of the Model class with multiple records.
  * @method void getTestSimples(array $data) Testing the GET operation of the Model class with multiple records.
+ * @method void getTestSimple(array $data) Testing the GET operation of the Model class.
  */
 class SimpleTest
 {
@@ -230,6 +231,41 @@ class SimpleTest
         foreach ($data as $simple) {
             $this->postTestSimple($simple);
         }
+    }
+
+    /**
+     * Testing the GET operation of the Model class.
+     * 
+     * This method tests the following:
+     * 1. Retrieving a single record from the database table.
+     * 2. Throwing an exception if the GET operation has failed.
+     * @param array $data The data to retrieve from the database table.
+     * @return void
+     * @throws Exception If the GET operation has failed.
+     */
+    private function getTestSimple(array $data): void
+    {
+        $response = Model::get(
+            true,
+            "Test_Simples",
+            "",
+            [],
+            [
+                "key" => "name",
+                "value" => $data["name"],
+                "is_general_search" => false,
+                "operator" => "=",
+                "is_bitwise" => false,
+                "bit_wise" => ""
+            ],
+            [],
+            [],
+            []
+        );
+        if (!empty($response)) {
+            return;
+        }
+        throw new Exception("The GET operation has failed.");
     }
 
     /**
