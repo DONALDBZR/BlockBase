@@ -30,6 +30,7 @@ $_ENV['REMOTE_ADDR'] = '127.0.0.1';
  * @method void runTest(string $name, callable $function) Running a single test.
  * @method void testDatabaseConnection() Testing the database connection to ensure it is working properly.
  * @method void testModelBasicFunctionality() Testing the basic functionality of the Model class.
+ * @method void createTestSimplesTable() Creating a table for testing purposes called `Test_Simples`.
  */
 class SimpleTest
 {
@@ -155,18 +156,23 @@ class SimpleTest
         }
     }
 
+    /**
+     * Creating a table for testing purposes called `Test_Simples`.
+     * @return void
+     * @throws Exception
+     */
+    private function createTestSimplesTable(): void
+    {
+        $response = $this->database->post("CREATE TABLE IF NOT EXISTS `Test_Simples` (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255) NOT NULL, value INTEGER)");
+        if ($response) {
+            return;
+        }
+        throw new Exception("Failed to create Test_Simples table");
+    }
+
     private function testCRUDOperations(): void
     {
-        // Create a simple test table
-        $createTableResult = $this->db->post("CREATE TABLE IF NOT EXISTS test_simple (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name VARCHAR(255) NOT NULL,
-            value INTEGER
-        )");
-        
-        if (!$createTableResult) {
-            throw new Exception("Failed to create test table");
-        }
+        $this->createTestSimplesTable();
 
         // Test INSERT operation
         $insertData = [
