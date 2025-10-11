@@ -39,6 +39,7 @@ $_ENV['REMOTE_ADDR'] = '127.0.0.1';
  * @method void getTestSimple(array $data) Testing the GET operation of the Model class.
  * @method void putTestSimples(array $data) Testing the PUT operation of the Model class with multiple records.
  * @method void putTestSimple(array $data, int $new_value) Testing the PUT operation of the Model class.
+ * @method void deleteTestSimples(array $data) Testing the DELETE operation of the Model class with multiple records.
  */
 class SimpleTest
 {
@@ -290,7 +291,7 @@ class SimpleTest
 
     /**
      * Testing the PUT operation of the Model class.
-     * @param array $data The data to update in the database table.
+     * @param array{name:string,value:int} $data The data to update in the database table.
      * @param int $new_value The new value to update the record with.
      * @return void
      * @throws Exception If the PUT operation has failed or if the verification of the PUT operation has failed.
@@ -342,7 +343,7 @@ class SimpleTest
      * This method tests the following:
      * 1. Updating a single record in the database table.
      * 2. Throwing an exception if the PUT operation has failed.
-     * @param array $data The array of records to update in the database table.
+     * @param array<int,array{name:string,value:int}> $data The array of records to update in the database table.
      * @return void
      * @throws Exception If the PUT operation has failed.
      */
@@ -358,34 +359,29 @@ class SimpleTest
         }
     }
 
+    /**
+     * Deleting multiple records from the database table.
+     * @param array<int,array{name:string,value:int}> $data The array of records to delete from the database table.
+     * @return void
+     */
+    private function deleteTestSimples(array $data): void
+    {
+        $limit = count($data);
+        for ($index = 0; $index < $limit; $index++) {
+            $array_index = random_int(0, $limit - 1);
+            $simple = $data[$array_index];
+            $this->deleteTestSimple($simple);
+        }
+    }
+
     private function testCRUDOperations(): void
     {
         $this->createTestSimplesTable();
         $data = $this->getTestSimplesData();
         $this->postTestSimples($data);
         $this->getTestSimples($data);
-        // Test UPDATE operation
-        $updateConditions = [
-            [
-                'key' => 'name',
-                'value' => 'test_item',
-                'is_general_search' => false,
-                'operator' => '=',
-                'is_bitwise' => false,
-                'bit_wise' => ''
-            ]
-        ];
-        
-        $updateResult = \App\Models\Model::put('test_simple', ['value' => 84], $updateConditions);
-        if (!$updateResult) {
-            throw new Exception("UPDATE operation failed");
-        }
-
-        // Verify update
-        $verifyResult = $this->db->get("SELECT * FROM test_simple WHERE name = ?", ['test_item']);
-        if ($verifyResult[0]['value'] != 84) {
-            throw new Exception("UPDATE verification failed");
-        }
+        $this->putTestSimples($data);
+        $this->deleteTestSimples($data);
 
         // Test DELETE operation
         $deleteConditions = [
