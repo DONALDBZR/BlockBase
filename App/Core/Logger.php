@@ -30,7 +30,7 @@ class Logger {
      * 3. Rotates the log file if it already exists.
      */
     private function __construct() {
-        self::setDirectory(__DIR__ . "/Storage/Logs/");
+        self::setDirectory($_SERVER["DOCUMENT_ROOT"] . "/Storage/Logs/");
         $date = date("Ymd");
         $directory = self::getDirectory();
         self::setFile("{$directory}{$date}.log");
