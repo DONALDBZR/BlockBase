@@ -159,7 +159,9 @@ class User extends Table_Model
      * Post-processing the given data after saving it to the database.
      * 
      * This function does the following:
-     * 1. Post-process the given data after saving it to the database.
+     * 1. Validates the given data according to the validation rules.
+     * 2. Post-process the given data after saving it to the database.
+     * 3. Logs an error if the data cannot be post-processed.
      * @param array{id:?int,username:string,email:string,password_hash:string,role:int,status:int,created_at:int,updated_at:int} $data The data to post-process.
      * @return void
      */
@@ -167,6 +169,7 @@ class User extends Table_Model
     {
         try {
             $this->validate($data);
+            $this->postProcess($data);
         } catch (InvalidArgumentException $error) {
             $data = [
                 "Error" => $error->getMessage(),
