@@ -6,6 +6,9 @@ require_once "{$SERVER['DOCUMENT_ROOT']}/App/Bootstraps/Core.php";
 
 use App\Models\Table_Model;
 use App\Core\Database_Handler;
+use InvalidArgumentException;
+use App\Core\Logger;
+
 
 class User extends Table_Model
 {
@@ -14,10 +17,11 @@ class User extends Table_Model
     public string $email;
     public string $password_hash;
     public int $role;
-    public int $status_id;
+    public int $status;
     public int $created_at;
     public int $updated_at;
     private string $table = "Test_Users";
+    private Logger $logger;
 
     /**
      * Initializing the user model with the given database handler.
@@ -29,72 +33,46 @@ class User extends Table_Model
     }
 
     /**
-     * Create a new user record
+     * Getting a validated email address from the given string.
+     * @param string $email The email address to validate.
+     * @return string The validated email address.
+     * @throws InvalidArgumentException If the email address is invalid.
      */
-    public static function create(array $data): int
+    private function getEmail(string $email): string
     {
-        $user = new static();
-        return static::post('test_users', $data) ? 1 : 0; // Simplified for testing
-    }
-
-    /**
-     * Update user record
-     */
-    public static function update(array $data, array $condition): bool
-    {
-        $user = new static();
-        $users = static::find($condition);
-        if (count($users) === 1) {
-            return static::put('test_users', $data, $condition);
+        $response = filter_var($email, FILTER_VALIDATE_EMAIL);
+        if (!empty($response)) {
+            return $response;
         }
-        return false;
+        throw new InvalidArgumentException("The email is invalid.", 400);
     }
 
-    /**
-     * Find users by conditions
-     */
-    public static function find(array $conditions): array
+    private function preProcess(array $data): void
     {
-        $formattedConditions = [];
-        foreach ($conditions as $key => $value) {
-            $formattedConditions[] = [
-                'key' => $key,
-                'value' => $value,
-                'is_general_search' => false,
-                'operator' => '=',
-                'is_bitwise' => false,
-                'bit_wise' => ''
+        $this->username = $data["username"];
+        $this->email = $this->getEmail($data["email"]);
+        // $this->password_hash = $data["password_hash"];
+        // $this->role = $data["role"];
+        // $this->status = $data["status"];
+        // $this->created_at = $data["created_at"];
+        // $this->updated_at = $data["updated_at"];
+    }
+
+    protected function beforeSave(array $data): array
+    {
+        try {
+            $this->validate($data);
+            $this->preProcess($data);
+            return $data;
+        } catch (InvalidArgumentException $error) {
+            $data = [
+                "Error" => $error->getMessage(),
+                "Code" => $error->getCode(),
+                "File" => $error->getFile(),
+                "Line" => $error->getLine()
             ];
+            $this->logger::log("The data cannot be pre-processed, hence, it will not be saved.", $this->logger::ERROR, $data);
+            return [];
         }
-        
-        return static::get(false, 'test_users', 'test_users', [], $formattedConditions);
-    }
-
-    /**
-     * Get all users
-     */
-    public static function getAll(): array
-    {
-        return static::all('test_users');
-    }
-
-    /**
-     * Delete users by conditions
-     */
-    public static function deleteUsers(array $conditions): bool
-    {
-        $formattedConditions = [];
-        foreach ($conditions as $key => $value) {
-            $formattedConditions[] = [
-                'key' => $key,
-                'value' => $value,
-                'is_general_search' => false,
-                'operator' => '=',
-                'is_bitwise' => false,
-                'bit_wise' => ''
-            ];
-        }
-        
-        return static::delete('test_users', $formattedConditions);
     }
 }
