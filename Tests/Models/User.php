@@ -96,6 +96,16 @@ class User extends Table_Model
         $this->updated_at = time();
     }
 
+    /**
+     * Pre-processing the given data before saving it to the database.
+     * 
+     * This function does the following:
+     * 1. Validates the given data according to the validation rules.
+     * 2. Pre-process the given data before saving it to the database.
+     * 3. Returns the pre-processed data.
+     * @param array{id:?int,username:string,email:string,password_hash:string,role:int,status:int,created_at:int,updated_at:int} $data The data to pre-process.
+     * @return array{id:?int,username:string,email:string,password_hash:string,role:int,status:int,created_at:int,updated_at:int}  The pre-processed data.
+     */
     protected function beforeSave(array $data): array
     {
         try {
