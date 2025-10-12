@@ -197,7 +197,7 @@ abstract class Table_Model extends Model
      * @param array<string,mixed> $data The data to validate.
      * @throws InvalidArgumentException If the data does not meet the validation rules.
      */
-    private function validate(array $data): void
+    public function validate(array $data): void
     {
         foreach ($this->getValidationRules() as $field => $rules) {
             $value = $data[$field] ?? null;
