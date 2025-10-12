@@ -67,6 +67,19 @@ class User extends Table_Model
     }
 
     /**
+     * Getting the creation time of a record from the given value.
+     * @param int $created_at The creation time of the record.
+     * @return int The creation time of the record. If the given value is empty, it returns the current time.
+     */
+    private function getCreatedAt(int $created_at): int
+    {
+        if (!empty($created_at)) {
+            return $created_at;
+        }
+        return time();
+    }
+
+    /**
      * Pre-processing the given data before saving it to the database.
      * @param array $data The data to pre-process.
      * @return void
@@ -79,7 +92,7 @@ class User extends Table_Model
         $this->password_hash = $this->getPasswordHash($data["password_hash"]);
         $this->role = $data["role"];
         $this->status = $data["status"];
-        $this->created_at = $data["created_at"];
+        $this->created_at = $this->getCreatedAt($data["created_at"]);
         $this->updated_at = time();
     }
 
