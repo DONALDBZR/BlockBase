@@ -47,11 +47,30 @@ class User extends Table_Model
         throw new InvalidArgumentException("The email is invalid.", 400);
     }
 
+    /**
+     * Getting a hashed password from the given string.
+     * 
+     * This function does the following:
+     * 1. Checks if the password is already hashed using Argon2i.
+     * 2. If not, it hashes the password using Argon2i.
+     * 3. Returns the hashed password.
+     * @param string $password_hash The password to hash.
+     * @return string The hashed password.
+     */
+    private function getPasswordHash(string $password_hash): string
+    {
+        $hashing_information = password_get_info($password_hash);
+        if ($hashing_information["algoName"] === "argon2i") {
+            return $password_hash;
+        }
+        return password_hash($password_hash, PASSWORD_ARGON2I);
+    }
+
     private function preProcess(array $data): void
     {
         $this->username = $data["username"];
         $this->email = $this->getEmail($data["email"]);
-        // $this->password_hash = $data["password_hash"];
+        $this->password_hash = $this->getPasswordHash($data["password_hash"]);
         // $this->role = $data["role"];
         // $this->status = $data["status"];
         // $this->created_at = $data["created_at"];
