@@ -80,12 +80,21 @@ class User extends Table_Model
     }
 
     /**
-     * Pre-processing the given data before saving it to the database.
-     * @param array $data The data to pre-process.
+     * Processing the given data.
+     * 
+     * This function does the following:
+     * 1. Sets the username of the record to the given value.
+     * 2. Validates the given email address and sets the email of the record to the validated value.
+     * 3. Hashes the given password using Argon2i and sets the password_hash of the record to the hashed value.
+     * 4. Sets the role of the record to the given value.
+     * 5. Sets the status of the record to the given value.
+     * 6. Sets the created_at of the record to the given value or the current time if the given value is empty.
+     * 7. Sets the updated_at of the record to the current time.
+     * @param array{id:?int,username:string,email:string,password_hash:string,role:int,status:int,created_at:int,updated_at:int} $data The data to process.
      * @return void
      * @throws InvalidArgumentException If the email address is invalid.
      */
-    private function preProcess(array $data): void
+    private function process(array $data): void
     {
         $this->username = $data["username"];
         $this->email = $this->getEmail($data["email"]);
@@ -94,6 +103,17 @@ class User extends Table_Model
         $this->status = $data["status"];
         $this->created_at = $this->getCreatedAt($data["created_at"]);
         $this->updated_at = time();
+    }
+
+    /**
+     * Pre-processing the given data before saving it to the database.
+     * @param array{id:?int,username:string,email:string,password_hash:string,role:int,status:int,created_at:int,updated_at:int} $data The data to pre-process.
+     * @return void
+     * @throws InvalidArgumentException If the email address is invalid.
+     */
+    private function preProcess(array $data): void
+    {
+        $this->process($data);
     }
 
     /**
@@ -121,6 +141,29 @@ class User extends Table_Model
             ];
             $this->logger::log("The data cannot be pre-processed, hence, it will not be saved.", $this->logger::ERROR, $data);
             return [];
+        }
+    }
+
+    /**
+     * Post-processing the given data after saving it to the database.
+     * 
+     * This function does the following:
+     * 1. Post-process the given data after saving it to the database.
+     * @param array{id:?int,username:string,email:string,password_hash:string,role:int,status:int,created_at:int,updated_at:int} $data The data to post-process.
+     * @return void
+     */
+    protected function afterSave(array $data): void
+    {
+        try {
+            $this->validate($data);
+        } catch (InvalidArgumentException $error) {
+            $data = [
+                "Error" => $error->getMessage(),
+                "Code" => $error->getCode(),
+                "File" => $error->getFile(),
+                "Line" => $error->getLine()
+            ];
+            $this->logger->log("The data cannot be post-processed.", $this->logger::ERROR, $data);
         }
     }
 }
