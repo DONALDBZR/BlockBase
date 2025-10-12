@@ -117,6 +117,17 @@ class User extends Table_Model
     }
 
     /**
+     * Post-processing the given data after saving it to the database.
+     * @param array{id:?int,username:string,email:string,password_hash:string,role:int,status:int,created_at:int,updated_at:int} $data The data to post-process.
+     * @return void
+     * @throws InvalidArgumentException If the email address is invalid.
+     */
+    private function postProcess(array $data): void
+    {
+        $this->process($data);
+    }
+
+    /**
      * Pre-processing the given data before saving it to the database.
      * 
      * This function does the following:
