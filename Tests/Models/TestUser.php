@@ -66,15 +66,21 @@ class User extends Table_Model
         return password_hash($password_hash, PASSWORD_ARGON2I);
     }
 
+    /**
+     * Pre-processing the given data before saving it to the database.
+     * @param array $data The data to pre-process.
+     * @return void
+     * @throws InvalidArgumentException If the email address is invalid.
+     */
     private function preProcess(array $data): void
     {
         $this->username = $data["username"];
         $this->email = $this->getEmail($data["email"]);
         $this->password_hash = $this->getPasswordHash($data["password_hash"]);
-        // $this->role = $data["role"];
-        // $this->status = $data["status"];
-        // $this->created_at = $data["created_at"];
-        // $this->updated_at = $data["updated_at"];
+        $this->role = $data["role"];
+        $this->status = $data["status"];
+        $this->created_at = $data["created_at"];
+        $this->updated_at = time();
     }
 
     protected function beforeSave(array $data): array
