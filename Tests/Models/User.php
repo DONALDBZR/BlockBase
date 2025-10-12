@@ -180,4 +180,33 @@ class User extends Table_Model
             $this->logger->log("The data cannot be post-processed.", $this->logger::ERROR, $data);
         }
     }
+
+    /**
+     * Before deleting the data, this function is called to validate the data and check any dependencies.
+     * 
+     * This function does the following:
+     * 1. Checking if the user has any roles or statuses.
+     * 2. Deleting the roles and statuses of the user if they exist.
+     * @param array{id:?int,username:string,email:string,password_hash:string,role:int,status:int,created_at:int,updated_at:int} $conditions The conditions to delete the data.
+     * @return void
+     * @throws InvalidArgumentException If the user has any roles or statuses.
+     */
+    protected function beforeDelete(array $conditions): void
+    {
+        try {
+            $users = $this->find($conditions);
+            if (count($users) > 0) {
+                $roles = $this->getRelated("Roles", $conditions);
+                $statuses = $this->getRelated("Statuses", $conditions);
+                if (count($roles) > 0) {
+                    throw new InvalidArgumentException("The user has roles and cannot be deleted.", 400);
+                }
+                if (count($statuses) > 0) {
+                    throw new InvalidArgumentException("The user has statuses and cannot be deleted.", 400);
+                }
+            }
+        } catch (InvalidArgumentException $error) {
+            throw $error;
+        }
+    }
 }
