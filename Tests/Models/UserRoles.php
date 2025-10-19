@@ -97,6 +97,25 @@ class User_Role extends Table_Model
     }
 
     /**
+     * Checking if the given role exists.
+     * 
+     * This function does the following:
+     * 1. Checks if the given role identifier is an integer.
+     * 2. If the role identifier is an integer, it returns.
+     * 3. If the role identifier is not an integer, it throws an `InvalidArgumentException` with a code of 404.
+     * @param int $identifier The role identifier to check.
+     * @return void
+     * @throws InvalidArgumentException If the role does not exist.
+     */
+    private function checkRole(int $identifier): void
+    {
+        if (is_int($identifier)) {
+            return;
+        }
+        throw new InvalidArgumentException("The role does not exist.", 404);
+    }
+
+    /**
      * Processing the given data.
      * 
      * This function does the following:
