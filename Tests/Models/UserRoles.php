@@ -78,6 +78,25 @@ class User_Role extends Table_Model
     }
 
     /**
+     * Checking if the given user exists.
+     * 
+     * This function does the following:
+     * 1. Checks if the given user identifier is an integer.
+     * 2. If the user identifier is an integer, it returns.
+     * 3. If the user identifier is not an integer, it throws an `InvalidArgumentException` with a code of 404.
+     * @param int $identifier The user identifier to check.
+     * @return void
+     * @throws InvalidArgumentException If the user does not exist.
+     */
+    private function checkUser(int $identifier): void
+    {
+        if (is_int($identifier)) {
+            return;
+        }
+        throw new InvalidArgumentException("The user does not exist.", 404);
+    }
+
+    /**
      * Processing the given data.
      * 
      * This function does the following:
