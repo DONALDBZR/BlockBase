@@ -7,13 +7,29 @@ use UnexpectedValueException;
 
 
 class Logger {
+    /**
+     * The singleton instance of the `Logger` class.
+     * @var ?Logger
+     */
     private static ?self $instance = null;
+    /**
+     * The directory where log files are stored.
+     * @var string
+     */
     private static string $directory;
+    /**
+     * The file to write logs to.
+     * @var string
+     */
     private static string $file;
     public const INFO = "INFO";
     public const DEBUG = "DEBUG";
     public const WARNING = "WARNING";
     public const ERROR = "ERROR";
+    /**
+     * The allowed severity levels for log messages.
+     * @var array<int,string>
+     */
     private static array $allowed_severities = [
         self::INFO,
         self::DEBUG,
