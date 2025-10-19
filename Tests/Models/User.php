@@ -202,8 +202,8 @@ class User extends Table_Model
         if (count($users) <= 0) {
             return;
         }
-        $User_Roles = new User_Roles();
-        $User_Status_History = new User_Status_History();
+        $User_Roles = new User_Roles($this->getDatabaseHandler());
+        $User_Status_History = new User_Status_History($this->getDatabaseHandler());
         $user_roles = [];
         $user_status_history = [];
         foreach ($users as $user) {
