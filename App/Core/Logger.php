@@ -22,15 +22,16 @@ class Logger {
     ];
 
     /**
-     * Initializing the `Logger` instance.
+     * Initializing the `Logger` instance with the default file and directory.
      * 
-     * This constructor functions as follows:
-     * 1. Sets the directory.
-     * 2. Sets the file.
+     * This function does the following:
+     * 1. Sets the directory to `Storage/Logs/`
+     * 2. Sets the file to the current date in `YYYYMMDD` format.
      * 3. Rotates the log file if it already exists.
      */
     private function __construct() {
-        self::setDirectory($_SERVER["DOCUMENT_ROOT"] . "/Storage/Logs/");
+        $root = dirname(__DIR__, 2);
+        self::setDirectory("{$root}/Storage/Logs/");
         $date = date("Ymd");
         $directory = self::getDirectory();
         self::setFile("{$directory}{$date}.log");
@@ -116,7 +117,8 @@ class Logger {
         $scope = self::getScope();
         $process_id = getmypid();
         $thread_id = (isset($_SERVER["HTTP_X_REQUESTED_UID"])) ? intval($_SERVER["HTTP_X_REQUESTED_UID"]) : intval(get_current_user());
-        $data = "[{$severity}] [{$date}] [{$scope}] [{$_SERVER['REMOTE_ADDR']}] [{$process_id}] [{$thread_id}] {$message}";
+        $remote_address = $_SERVER["REMOTE_ADDR"] ?? "CLI";
+        $data = "[{$severity}] [{$date}] [{$scope}] [{$remote_address}] [{$process_id}] [{$thread_id}] {$message}";
         if (!empty($context)) {
             foreach ($context as $key => $value) {
                 if (!is_scalar($value)) {
@@ -140,7 +142,14 @@ class Logger {
         $date = new DateTime();
         $name = $date->format("Ymd");
         $file = self::getFile();
-        rename($file, "{$name}.log");
+        $directory = dirname($file);
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+        if (file_exists($file)) {
+            $rotated_file = "{$directory}/{$name}.log";
+            rename($file, $rotated_file);
+        }
         touch($file);
     }
 }
