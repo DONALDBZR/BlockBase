@@ -39,13 +39,14 @@ if ($is_testing) {
     $environment_path = __DIR__ . "/../.env.testing";
 }
 loadEnv($environment_path);
-
 use App\Core\Router;
+
+
+require_once __DIR__ . "/../App/Core/routes.php";
+
+
 $router = new Router();
-$router->get("/", function () {
-    echo "Welcome to your PHP CMS 🚀";
-});
-$router->get("/about", function () {
-    echo "This is the About Page.";
-});
-$router->dispatch($_SERVER["REQUEST_URI"], $_SERVER["REQUEST_METHOD"]);
+
+registerGlobalMiddleware($router);
+registerRoutes($router);
+$router->dispatch(strval($_SERVER["REQUEST_URI"]), strval($_SERVER["REQUEST_METHOD"]));
