@@ -1,6 +1,7 @@
 <?php
 use App\Core\Router;
 use App\Core\Logger;
+use App\Core\Middleware\Authentication;
 
 
 /**
@@ -51,7 +52,7 @@ function registerRoutes(Router $router): void
         </div>
         ";
     }, [
-        [\App\Core\Middleware\AuthenticationMiddleware::class, "check"]
+        [Authentication::class, "check"]
     ]);
     $router->get('/API/Health', function() {
         header("Content-Type: application/json");
