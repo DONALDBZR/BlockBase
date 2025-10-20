@@ -18,9 +18,9 @@ use App\Core\Logger;
  */
 function registerRoutes(Router $router): void
 {
-    $router->get("/", "HomeController@index");
-    $router->get("/About", "HomeController@about");
-    $router->get("/Contact", "HomeController@contact");
+    $router->get("/", "Home@index");
+    $router->get("/About", "Home@about");
+    $router->get("/Contact", "Home@contact");
     $router->get("/User/{id}", function() {
         echo "
         <div class='alert alert-info'>
